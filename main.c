@@ -38,7 +38,13 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
-    printf("%s - %d\n", ast->declarations->members[0]->name, *(int*)ast->declarations->members[0]->value->data);
+    struct member_type* mem = (struct member_type*)ast->declarations->commands[0]->command;
+    printf("%d %d\n", ast->declarations->commands[0]->num, ast->functionCalls->commands[0]->num);
+    printf("%s - %d\n", mem->name, *(int*)mem->value->data);
+    struct func_call_type* f = (struct func_call_type*)ast->functionCalls->commands[0]->command;
+    printf("%s - %d %d %d\n", f->name, *(int*)f->values->values[0]->data, *(int*)f->values->values[1]->data, *(int*)f->values->values[2]->data);
+    struct func_call_type* f1 = (struct func_call_type*)ast->functionCalls->commands[1]->command;
+    printf("%s - %s\n", f1->name, (char*)f1->values->values[0]->data);
     return 0;
 }
 // int main(int argc, char **argv) {

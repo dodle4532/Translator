@@ -891,14 +891,20 @@ YY_RULE_SETUP
 case 26:
 YY_RULE_SETUP
 #line 40 "lex.l"
-{return STRING;}
+{ const char* str_start = yytext + 1;
+                 int len = strlen(yytext) - 2;
+                 char* new_str = (char*)malloc(len + 1); // +1 для завершающего нуля
+                 strncpy(new_str, str_start, len);
+                 new_str[len] = '\0';
+                 yylval.str = new_str;
+                 return STRING;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 42 "lex.l"
+#line 48 "lex.l"
 ECHO;
 	YY_BREAK
-#line 902 "lex.yy.c"
+#line 908 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1903,6 +1909,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 42 "lex.l"
+#line 48 "lex.l"
 
 

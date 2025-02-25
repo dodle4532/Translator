@@ -76,14 +76,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 12 "sent.y"
+#line 13 "sent.y"
 
     char* str;
     int integer;
     struct member_type* memb;
     struct value_type* _val;
+    struct value_vec* valVec;
+    struct command_type* com;
 
-#line 87 "sent.tab.h"
+#line 89 "sent.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -37,6 +37,12 @@
 "{"      {return '{';}
 "}"      {return '}';}
 
-\"([^\"\n])*\" {return STRING;}
+\"([^\"\n])*\" { const char* str_start = yytext + 1;
+                 int len = strlen(yytext) - 2;
+                 char* new_str = (char*)malloc(len + 1); // +1 для завершающего нуля
+                 strncpy(new_str, str_start, len);
+                 new_str[len] = '\0';
+                 yylval.str = new_str;
+                 return STRING;}
 
 %%

@@ -37,7 +37,7 @@ struct ast
     struct member_vec* initializations;
     struct member_vec* functionCalls;
     struct member_vec* functions;
-    struct member_vec* if_expression;
+    struct member_vec* if_expressions;
 };
 
 struct value_type* createValue(enum VALUE_TYPE type, void* data); 

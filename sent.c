@@ -540,10 +540,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    40,    40,    41,    47,    48,    49,    50,    51,    55,
-      59,    60,    63,    67,    71,    75,    79,    80,    84,    85,
-      89,    90,    94,    95,    96,   100,   104,   105,   109,   110,
-     111,   115,   119,   123,   124,   128,   132,   133
+       0,    45,    45,    46,    52,    53,    54,    55,    56,    60,
+      66,    67,    70,    76,    80,    84,    88,    89,    93,    94,
+      98,    99,   103,   104,   105,   109,   113,   114,   118,   119,
+     120,   124,   128,   132,   133,   137,   141,   142
 };
 #endif
 
@@ -1144,211 +1144,71 @@ yyreduce:
   switch (yyn)
     {
   case 4: /* command: declaration  */
-#line 47 "sent.y"
-              {(yyval.str) = (yyvsp[0].str);}
+#line 52 "sent.y"
+              {push_back(ast->declarations, (yyvsp[0].memb));}
 #line 1150 "sent.c"
     break;
 
   case 5: /* command: initialization  */
-#line 48 "sent.y"
-                 {(yyval.str) = (yyvsp[0].str);}
+#line 53 "sent.y"
+                 {push_back(ast->initializations, (yyvsp[0].memb));}
 #line 1156 "sent.c"
     break;
 
   case 6: /* command: functionCall  */
-#line 49 "sent.y"
-               {(yyval.str) = (yyvsp[0].str);}
+#line 54 "sent.y"
+               {push_back(ast->functionCalls, (yyvsp[0].memb));}
 #line 1162 "sent.c"
     break;
 
   case 7: /* command: function  */
-#line 50 "sent.y"
-           {(yyval.str) = (yyvsp[0].str);}
+#line 55 "sent.y"
+           {push_back(ast->functions, (yyvsp[0].memb));}
 #line 1168 "sent.c"
     break;
 
   case 8: /* command: if_expression  */
-#line 51 "sent.y"
-                {(yyval.str) = (yyvsp[0].str);}
+#line 56 "sent.y"
+                {push_back(ast->if_expressions, (yyvsp[0].memb));}
 #line 1174 "sent.c"
     break;
 
   case 9: /* declaration: LET WORD ':' type init ';'  */
-#line 55 "sent.y"
-                             {(yyval.str) = NULL; free((yyvsp[-4].str));}
-#line 1180 "sent.c"
+#line 60 "sent.y"
+                             { int* a = malloc(sizeof(int));
+                               *a = (yyvsp[-1].integer);
+                               (yyval.memb) = createMember(createValue(INTEGER_TYPE, a), (yyvsp[-4].str));}
+#line 1182 "sent.c"
     break;
 
   case 10: /* init: assignment  */
-#line 59 "sent.y"
-             {(yyval.str) = (yyvsp[0].str);}
-#line 1186 "sent.c"
+#line 66 "sent.y"
+             {(yyval.integer) = (yyvsp[0].integer);}
+#line 1188 "sent.c"
     break;
 
   case 11: /* init: %empty  */
-#line 60 "sent.y"
-         {(yyval.str) = NULL;}
-#line 1192 "sent.c"
+#line 67 "sent.y"
+         {(yyval.integer) = NULL;}
+#line 1194 "sent.c"
     break;
 
   case 12: /* initialization: WORD assignment ';'  */
-#line 63 "sent.y"
-                      {(yyval.str) = NULL; free((yyvsp[-2].str));}
-#line 1198 "sent.c"
+#line 70 "sent.y"
+                      { int* a = malloc(sizeof(int));
+                        *a = (yyvsp[-1].integer);
+                        (yyval.memb) = createMember(createValue(INTEGER_TYPE, a), (yyvsp[-2].str));}
+#line 1202 "sent.c"
     break;
 
   case 13: /* assignment: '=' NUM  */
-#line 67 "sent.y"
-          {(yyval.str) = NULL;}
-#line 1204 "sent.c"
-    break;
-
-  case 14: /* type: U32  */
-#line 71 "sent.y"
-      {(yyval.str) = NULL;}
-#line 1210 "sent.c"
-    break;
-
-  case 15: /* functionCall: WORD '(' value ')' ';'  */
-#line 75 "sent.y"
-                         {(yyval.str) = NULL; free((yyvsp[-4].str));}
-#line 1216 "sent.c"
-    break;
-
-  case 16: /* value: val  */
-#line 79 "sent.y"
-      {(yyval.str) = (yyvsp[0].str);}
-#line 1222 "sent.c"
-    break;
-
-  case 17: /* value: val ',' value  */
-#line 80 "sent.y"
-                {(yyval.str) = NULL;}
-#line 1228 "sent.c"
-    break;
-
-  case 18: /* parametrs: par  */
-#line 84 "sent.y"
-      {(yyval.str) = (yyvsp[0].str);}
-#line 1234 "sent.c"
-    break;
-
-  case 19: /* parametrs: par ',' parametrs  */
-#line 85 "sent.y"
-                    {(yyval.str) = NULL;}
-#line 1240 "sent.c"
-    break;
-
-  case 20: /* par: INT WORD  */
-#line 89 "sent.y"
-           {(yyval.str) = NULL;}
-#line 1246 "sent.c"
-    break;
-
-  case 21: /* par: %empty  */
-#line 90 "sent.y"
-         {(yyval.str) = NULL;}
-#line 1252 "sent.c"
-    break;
-
-  case 22: /* val: STRING  */
-#line 94 "sent.y"
-         {(yyval.str) = (yyvsp[0].str); free((yyvsp[0].str));}
-#line 1258 "sent.c"
-    break;
-
-  case 23: /* val: NUM  */
-#line 95 "sent.y"
-      {(yyval.str) = NULL;}
-#line 1264 "sent.c"
-    break;
-
-  case 24: /* val: WORD  */
-#line 96 "sent.y"
-       {(yyval.str) = NULL;}
-#line 1270 "sent.c"
-    break;
-
-  case 25: /* function: FN WORD '(' parametrs ')' brackets_functionImplementation  */
-#line 100 "sent.y"
-                                                            {(yyval.str) = NULL; free((yyvsp[-4].str));}
-#line 1276 "sent.c"
-    break;
-
-  case 26: /* functionImplementation: funcImpl  */
-#line 104 "sent.y"
-           {(yyval.str) = (yyvsp[0].str);}
-#line 1282 "sent.c"
-    break;
-
-  case 27: /* functionImplementation: funcImpl functionImplementation  */
-#line 105 "sent.y"
-                                  {(yyval.str) = NULL;}
-#line 1288 "sent.c"
-    break;
-
-  case 28: /* funcImpl: functionCall  */
-#line 109 "sent.y"
-               {(yyval.str) = (yyvsp[0].str);}
-#line 1294 "sent.c"
-    break;
-
-  case 29: /* funcImpl: initialization  */
-#line 110 "sent.y"
-                 {(yyval.str) = (yyvsp[0].str);}
-#line 1300 "sent.c"
-    break;
-
-  case 30: /* funcImpl: declaration  */
-#line 111 "sent.y"
-              {(yyval.str) = (yyvsp[0].str);}
-#line 1306 "sent.c"
-    break;
-
-  case 31: /* brackets_functionImplementation: '{' functionImplementation '}'  */
-#line 115 "sent.y"
-                                 {(yyval.str) = NULL;}
-#line 1312 "sent.c"
-    break;
-
-  case 32: /* if_expression: IF expression brackets_functionImplementation else_expression  */
-#line 119 "sent.y"
-                                                                {(yyval.str) = NULL;}
-#line 1318 "sent.c"
-    break;
-
-  case 33: /* else_expression: ELSE brackets_functionImplementation  */
-#line 123 "sent.y"
-                                       {(yyval.str) = NULL;}
-#line 1324 "sent.c"
-    break;
-
-  case 34: /* else_expression: %empty  */
-#line 124 "sent.y"
-         {(yyval.str) = NULL;}
-#line 1330 "sent.c"
-    break;
-
-  case 35: /* expression: val cmp val  */
-#line 128 "sent.y"
-              {(yyval.str) = NULL;}
-#line 1336 "sent.c"
-    break;
-
-  case 36: /* cmp: EQUALS  */
-#line 132 "sent.y"
-         {(yyval.str) = NULL;}
-#line 1342 "sent.c"
-    break;
-
-  case 37: /* cmp: NOT_EQUALS  */
-#line 133 "sent.y"
-             {(yyval.str) = NULL;}
-#line 1348 "sent.c"
+#line 76 "sent.y"
+          {(yyval.integer) = (yyvsp[0].integer);}
+#line 1208 "sent.c"
     break;
 
 
-#line 1352 "sent.c"
+#line 1212 "sent.c"
 
       default: break;
     }
@@ -1541,7 +1401,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 136 "sent.y"
+#line 145 "sent.y"
 
 
 void yyerror(char *s) {

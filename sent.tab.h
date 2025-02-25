@@ -79,9 +79,11 @@ union YYSTYPE
 #line 12 "sent.y"
 
     char* str;
+    int integer;
     struct member_type* memb;
+    struct value_type* _val;
 
-#line 85 "sent.tab.h"
+#line 87 "sent.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

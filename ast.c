@@ -29,7 +29,7 @@ struct ast* createAst() {
     _ast->declarations = createMembersVec();
     _ast->functionCalls = createMembersVec();
     _ast->functions = createMembersVec();
-    _ast->if_expression = createMembersVec();
+    _ast->if_expressions = createMembersVec();
     _ast->initializations = createMembersVec();
     return _ast;
 }

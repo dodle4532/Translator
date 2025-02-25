@@ -3,7 +3,6 @@
 %{
 #include <stdio.h>
 
-#define YY_DECL int yylex()
 
 #include "sent.tab.h"
 
@@ -13,7 +12,7 @@
 
 [ \t] ; // ignore all whitespace
 [ \n] ;
-[0-9]+      {return NUM;}
+[0-9]+      {yylval.integer = atoi(yytext); return NUM;}
 "let" {return LET;}
 "u32" {return U32;}
 "fn"  {return FN;}
@@ -26,7 +25,7 @@
 "!="  {return NOT_EQUALS;}
 "\""  {return QUOTE;}
 
-[a-zA-Z][a-zA-Z0-9]* {return WORD;}
+[a-zA-Z][a-zA-Z0-9]* {yylval.str = strdup(yytext); return WORD;}
 ":"      {return ':';}
 "+"      {return '+';}
 "*"      {return '*';}

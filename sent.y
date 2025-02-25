@@ -11,10 +11,12 @@
 %}
 %union {
     char* str;
+    int integer;
     struct member_type* memb;
+    struct value_type* _val;
 }
 
-%token NUM
+%token <integer> NUM
 %token <str> WORD
 %token <str> STRING
 %token LET
@@ -30,9 +32,12 @@
 %token QUOTE
 
 // Определяем типы для нетерминалов
-%type <str> command declaration initialization functionCall function if_expression
-%type <str> type init assignment value parametrs par brackets_functionImplementation
-%type <str> functionImplementation funcImpl else_expression expression cmp val
+
+
+%type <memb> command declaration initialization functionCall function if_expression
+%type <integer> init assignment
+%type <str> type
+%type <_val> value val
 
 %% /* The grammar follows. */
 
@@ -44,15 +49,17 @@ input:
 
 
 command:
-  declaration {$$ = $1;}
-| initialization {$$ = $1;}
-| functionCall {$$ = $1;}
-| function {$$ = $1;}
-| if_expression {$$ = $1;}
+  declaration {push_back(ast->declarations, $1);}
+| initialization {push_back(ast->initializations, $1);}
+| functionCall {push_back(ast->functionCalls, $1);}
+| function {push_back(ast->functions, $1);}
+| if_expression {push_back(ast->if_expressions, $1);}
 ;
 
 declaration:
-  LET WORD ':' type init ';' {$$ = NULL; free($2);}
+  LET WORD ':' type init ';' { int* a = malloc(sizeof(int));
+                               *a = $5;
+                               $$ = createMember(createValue(INTEGER_TYPE, a), $2);}
 ;
 
 init:
@@ -60,77 +67,79 @@ init:
 | %empty {$$ = NULL;}
 
 initialization:
-  WORD assignment ';' {$$ = NULL; free($1);}
+  WORD assignment ';' { int* a = malloc(sizeof(int));
+                        *a = $2;
+                        $$ = createMember(createValue(INTEGER_TYPE, a), $1);}
 ;
 
 assignment:
-  '=' NUM {$$ = NULL;}
+  '=' NUM {$$ = $2;}
 ;
 
 type:
-  U32 {$$ = NULL;}
+  U32
 ;
 
 functionCall:
-  WORD '(' value ')' ';' {$$ = NULL; free($1);}
+  WORD '(' value ')' ';'
 ;
 
 value:
-  val {$$ = $1;}
-| val ',' value {$$ = NULL;}
+  val
+| val ',' value
 ;
 
 parametrs:
-  par {$$ = $1;}
-| par ',' parametrs {$$ = NULL;}
+  par
+| par ',' parametrs
 ;
 
 par:
-  INT WORD {$$ = NULL;}
-| %empty {$$ = NULL;}
+  INT WORD
+| %empty
 ;
 
 val:
-  STRING {$$ = $1; free($1);}
-| NUM {$$ = NULL;}
-| WORD {$$ = NULL;}
+  STRING
+| NUM
+| WORD
 ;
 
 function:
-  FN WORD '(' parametrs ')' brackets_functionImplementation {$$ = NULL; free($2);}
+  FN WORD '(' parametrs ')' brackets_functionImplementation
 ;
 
 functionImplementation:
-  funcImpl {$$ = $1;}
-| funcImpl functionImplementation {$$ = NULL;}
+  funcImpl
+| funcImpl functionImplementation
 ;
 
 funcImpl:
-  functionCall {$$ = $1;}
-| initialization {$$ = $1;}
-| declaration {$$ = $1;}
+  functionCall
+| initialization
+| declaration
 ;
 
 brackets_functionImplementation:
-  '{' functionImplementation '}' {$$ = NULL;}
+  '{' functionImplementation '}'
 ;
 
 if_expression:
-  IF expression brackets_functionImplementation else_expression {$$ = NULL;}
+  IF expression brackets_functionImplementation else_expression
 ;
 
 else_expression:
-  ELSE brackets_functionImplementation {$$ = NULL;}
-| %empty {$$ = NULL;}
+  ELSE brackets_functionImplementation
+| %empty
 ;
 
 expression:
-  val cmp val {$$ = NULL;}
+  val cmp val
 ;
 
 cmp:
-  EQUALS {$$ = NULL;}
-| NOT_EQUALS {$$ = NULL;}
+  EQUALS
+| NOT_EQUALS
 ;
 
 %%

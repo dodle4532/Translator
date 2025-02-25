@@ -11,26 +11,34 @@ int main(int argc, char **argv) {
     int res;
     ast = createAst();
     if (argc != 2) {
-        res = yyparse();
-        if (res == 0) {
-            printf("ok\n");
-            return 0;
-        }
-    }
-
-    FILE *inputFile = fopen(argv[1], "r");
-    if (!inputFile) {
+        printf("No file\n");
+        // res = yyparse();
+        // if (res == 0) {
+        //     printf("ok\n");
+        // }
+        // else {
+        //     return 1;
+        // }
         return 1;
     }
+    else {
+        FILE *inputFile = fopen(argv[1], "r");
+        if (!inputFile) {
+            return 1;
+        }
 
-    yyin = inputFile;
-    res = yyparse();
+        yyin = inputFile;
+        res = yyparse();
 
-    fclose(inputFile);
-    if (res == 0) {
-        printf("ok\n");
-        return 0;
+        fclose(inputFile);
+        if (res == 0) {
+            printf("ok\n");
+        }
+        else {
+            return 1;
+        }
     }
+    printf("%s - %d\n", ast->declarations->members[0]->name, *(int*)ast->declarations->members[0]->value->data);
     return 0;
 }
 // int main(int argc, char **argv) {

@@ -83,9 +83,12 @@ union YYSTYPE
     struct member_type* memb;
     struct value_type* _val;
     struct value_vec* valVec;
+    struct member_vec* membVec;
     struct command_type* com;
+    struct ast* ast_type;
+    struct func_impl_type* f_impl_type;
 
-#line 89 "sent.tab.h"
+#line 92 "sent.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

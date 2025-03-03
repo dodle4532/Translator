@@ -23,6 +23,13 @@ struct command_type* createCommand(int num, void* command) {
     return com;
 }
 
+struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* astWOfuncImpl) {
+    struct func_impl_type* res = calloc(1, sizeof(struct func_impl_type));
+    res->name = name;
+    res->parametrs = parametrs;
+    res ->astWOfuncImpl = astWOfuncImpl;
+    return res;
+}
 
 struct member_vec* createMemberVec() {
     struct member_vec* mem = calloc(1, sizeof(struct member_vec));
@@ -48,6 +55,15 @@ struct command_vec* createCommandVec() {
     return com;
 }
 
+struct func_impl_vec* createFuncImplVec() {
+    struct func_impl_vec* fImpl = calloc(1, sizeof(struct func_impl_vec));
+    fImpl->functions = calloc(128, sizeof(struct func_impl_type*)); // попробовать 4
+    fImpl->size = 0;
+    fImpl->capacity = 4;
+    return fImpl;
+}
+
+
 struct func_call_type* createFuncCall(char* name, struct value_vec* values) {
     struct func_call_type* res = calloc(1, sizeof(struct func_call_type));
     res->name = calloc(64, sizeof(char));
@@ -56,13 +72,11 @@ struct func_call_type* createFuncCall(char* name, struct value_vec* values) {
     return res;
 }
 
-
-
 struct ast* createAst() {
     struct ast* _ast = calloc(1, sizeof(struct ast));
     _ast->declarations = createCommandVec();
     _ast->functionCalls = createCommandVec();
-    _ast->functions = createCommandVec();
+    _ast->functions = createFuncImplVec();
     _ast->if_expressions = createCommandVec();
     _ast->initializations = createCommandVec();
     return _ast;
@@ -122,5 +136,43 @@ void push_back_com(struct command_vec* com, struct command_type* command) {
 
     com->commands[com->size] = command;
     com->size++;
+    return;
+}
+
+void push_back_fImpl(struct func_impl_vec* fImpl, struct func_impl_type* functionImplementation) {
+    if (fImpl->size == fImpl->capacity) {
+        printf("ok");
+        // Необходимо увеличить вместимость
+        size_t new_capacity = fImpl->capacity * 2;
+        struct func_impl_type** new_data = (struct func_impl_type**)realloc(fImpl->functions, new_capacity * sizeof(struct func_impl_type*));
+        if (new_data == NULL) {
+            fprintf(stderr, "Ошибка перевыделения памяти для данных вектора\n");
+            return; // Indicate failure
+        }
+        fImpl->functions = new_data;
+        fImpl->capacity = new_capacity;
+    }
+
+    fImpl->functions[fImpl->size] = functionImplementation;
+    fImpl->size++;
+    return;
+}
+
+void mergeAst(struct ast* first, struct ast* second) {
+    for (int i = 0; i < second->declarations->size; ++i) {
+        push_back_com(first->declarations, second->declarations->commands[i]);
+    }
+    
+    for (int i = 0; i < second->initializations->size; ++i) {
+        push_back_com(first->initializations, second->initializations->commands[i]);
+    }
+    
+    for (int i = 0; i < second->functionCalls->size; ++i) {
+        push_back_com(first->functionCalls, second->functionCalls->commands[i]);
+    }
+    
+    for (int i = 0; i < second->if_expressions->size; ++i) {
+        push_back_com(first->if_expressions, second->if_expressions->commands[i]);
+    }
     return;
 }

@@ -16,7 +16,10 @@
     struct member_type* memb;
     struct value_type* _val;
     struct value_vec* valVec;
+    struct member_vec* membVec;
     struct command_type* com;
+    struct ast* ast_type;
+    struct func_impl_type* f_impl_type;
 }
 
 %token <integer> NUM
@@ -37,12 +40,15 @@
 // Определяем типы для нетерминалов
 
 
-%type <com> command declaration initialization function if_expression functionCall
+%type <com> command declaration initialization if_expression functionCall
 %type <integer> init assignment
 %type <str> type
 %type <_val> val
+%type <memb> par
 %type <valVec> value
-%type <func_call_type> func_call
+%type <membVec> parametrs
+%type <ast_type> functionImplementation brackets_functionImplementation funcImpl
+%type <f_impl_type> function
 
 %% /* The grammar follows. */
 
@@ -57,8 +63,8 @@ command:
   declaration {push_back_com(ast->declarations, $1);}
 | initialization {push_back_com(ast->initializations, $1);}
 | functionCall {push_back_com(ast->functionCalls, $1);}
-| function
-| if_expression
+| function {push_back_fImpl(ast->functions, $1);}
+| if_expression {push_back_fImpl(ast->if_expressions, $1);}
 ;
 
 declaration:
@@ -70,7 +76,7 @@ declaration:
 
 init:
   assignment {$$ = $1;}
-| %empty {$$ = NULL;}
+| %empty {$$ = -1;}
 
 initialization:
   WORD assignment ';' { int* a = malloc(sizeof(int));
@@ -103,13 +109,18 @@ value:
 ;
 
 parametrs:
-  par
-| par ',' parametrs
+  par               {$$ = createMemberVec();
+                     push_back_mem($$, $1);}
+| par ',' parametrs {$$ = createMemberVec();
+                     push_back_mem($$, $1);
+                     for(int i = 0; i < $3->size; ++i) {
+                      push_back_mem($$, $3->members[i]);
+                     }}
 ;
 
 par:
-  INT WORD
-| %empty
+  INT WORD {$$ = createMember(createValue(INTEGER_TYPE, NULL), $2);}
+| %empty   {$$ = createMember(createValue(NULL_TYPE, NULL), NULL);}
 ;
 
 val:
@@ -119,26 +130,30 @@ val:
 | NUM    { int* a = malloc(sizeof(int));
            *a = $1;
            $$ = createValue(INTEGER_TYPE, a);}
-| WORD
+| WORD   { char* str = calloc(64, sizeof(char));
+           strcpy(str, $1);
+           $$ = createValue(OBJECT_TYPE, str);}
 ;
 
 function:
-  FN WORD '(' parametrs ')' brackets_functionImplementation
+  FN WORD '(' parametrs ')' brackets_functionImplementation { $$ = createFuncImpl($2, $4, $6); }
 ;
 
 functionImplementation:
-  funcImpl
-| funcImpl functionImplementation
+  funcImpl                        { $$ = createAst();
+                                    mergeAst($$, $1);}
+| funcImpl functionImplementation { $$ = createAst();
+                                    mergeAst($$, $1); mergeAst($$, $2);}
 ;
 
 funcImpl:
-  functionCall
-| initialization
-| declaration
+  functionCall {$$ = createAst(); push_back_com($$->functionCalls, $1);}
+| initialization {$$ = createAst(); push_back_com($$->initializations, $1);}
+| declaration {$$ = createAst(); push_back_com($$->declarations, $1);}
 ;
 
 brackets_functionImplementation:
-  '{' functionImplementation '}'
+  '{' functionImplementation '}' {$$ = $2;}
 ;
 
 if_expression:

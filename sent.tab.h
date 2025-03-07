@@ -59,15 +59,22 @@ extern int yydebug;
     STRING = 260,                  /* STRING  */
     LET = 261,                     /* LET  */
     U32 = 262,                     /* U32  */
-    FN = 263,                      /* FN  */
-    INT = 264,                     /* INT  */
-    IF = 265,                      /* IF  */
-    ELSE = 266,                    /* ELSE  */
-    FOR = 267,                     /* FOR  */
-    WHILE = 268,                   /* WHILE  */
-    EQUALS = 269,                  /* EQUALS  */
-    NOT_EQUALS = 270,              /* NOT_EQUALS  */
-    QUOTE = 271                    /* QUOTE  */
+    U64 = 263,                     /* U64  */
+    F32 = 264,                     /* F32  */
+    STR = 265,                     /* STR  */
+    BOOL = 266,                    /* BOOL  */
+    FN = 267,                      /* FN  */
+    INT = 268,                     /* INT  */
+    IF = 269,                      /* IF  */
+    ELSE = 270,                    /* ELSE  */
+    FOR = 271,                     /* FOR  */
+    WHILE = 272,                   /* WHILE  */
+    EQUALS = 273,                  /* EQUALS  */
+    NOT_EQUALS = 274,              /* NOT_EQUALS  */
+    QUOTE = 275,                   /* QUOTE  */
+    IN = 276,                      /* IN  */
+    TWO_POINTS = 277,              /* TWO_POINTS  */
+    DOUBLE_PLUS = 278              /* DOUBLE_PLUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -76,7 +83,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 13 "sent.y"
+#line 154 "sent.y"
 
     char* str;
     int integer;
@@ -86,9 +93,10 @@ union YYSTYPE
     struct member_vec* membVec;
     struct command_type* com;
     struct ast* ast_type;
-    struct func_impl_type* f_impl_type;
+    struct if_cond_type* if_cond;
+    struct if_expr_type* if_expr;
 
-#line 92 "sent.tab.h"
+#line 100 "sent.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

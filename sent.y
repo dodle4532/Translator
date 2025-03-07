@@ -9,6 +9,147 @@
   void yyerror (char *s);
   extern struct ast* ast;
   int num = 1;
+  char* getValFromValueType(struct value_type* val) {
+      if (val->type == NULL_TYPE || val->type == STRING_TYPE || val->type == OBJECT_TYPE) {
+        return strdup((char*)val->data);
+      } 
+      if (val->type == INTEGER_TYPE) {
+          char* res = calloc(16, sizeof(char));
+          sprintf(res, "%d", *(int*)val->data);
+          return res;
+      }
+      return NULL;
+  }
+  enum VALUE_TYPE getValueType(char* val) {
+      if (!strcmp(val, "bool")) {
+          return BOOLEAN_TYPE;
+      }
+      if (!strcmp(val, "u32") || !strcmp(val, "u64")) {
+          return INTEGER_TYPE;
+      }
+      if (!strcmp(val, "f32")) {
+          return FLOAT_TYPE;
+      }
+      if (!strcmp(val, "str")) {
+          return STRING_TYPE;
+      }
+      return NULL_TYPE;
+  }
+  int getIntRes(int l, int r, const char* op) {
+    if (!strcmp(op, "+")) {
+      return l + r;
+    }
+    if (!strcmp(op, "-")) {
+      return l - r;
+    }
+    if (!strcmp(op, "*")) {
+      return l * r;
+    }
+    if (!strcmp(op, "/")) {
+      return l / r;
+    }
+  }
+  float getFloatRes(float l, float r, const char* op) {
+    if (!strcmp(op, "+")) {
+      return l + r;
+    }
+    if (!strcmp(op, "-")) {
+      return l - r;
+    }
+    if (!strcmp(op, "*")) {
+      return l * r;
+    }
+    if (!strcmp(op, "/")) {
+      return l / r;
+    }
+  }
+  struct value_type* getOp(struct value_type* left, struct value_type* right, const char* op) {
+    struct value_type* val = calloc(1, sizeof(struct value_type));
+    if (left->type == INTEGER_TYPE && right->type == INTEGER_TYPE) {
+      val->type = INTEGER_TYPE;
+      int* a = malloc(sizeof(int));
+      *a = getIntRes(*(int*)left->data, *(int*)right->data, op);
+      val->data = a;
+      if (left->data != NULL) {
+        free(left->data);
+      }
+      free(left);
+      if (right->data != NULL) {
+        free(right->data);
+      }
+      free(right);
+      return val;
+    }
+    if (left->type == FLOAT_TYPE && right->type == FLOAT_TYPE) {
+      val->type = FLOAT_TYPE;
+      float* a = malloc(sizeof(float));
+      *a = getFloatRes(*(float*)left->data, *(float*)right->data, op);
+      val->data = a;
+      if (left->data != NULL) {
+        free(left->data);
+      }
+      free(left);
+      if (right->data != NULL) {
+        free(right->data);
+      }
+      free(right);
+      return val;
+    }
+    if (strcmp(op, "+")) {
+      free(val);
+      return NULL;
+    }
+    if (left->type == BOOLEAN_TYPE || right->type == BOOLEAN_TYPE || left->type == NULL_TYPE || right->type == NULL_TYPE) {
+      free(val); return NULL;
+    }
+    if (left->type == OBJECT_TYPE || right->type == OBJECT_TYPE) {
+      char* l1;
+      char* l2;
+      if (left->type == INTEGER_TYPE) {
+        l1 = calloc(32,sizeof(char));
+        sprintf(l1, "%d", *(int*)left->data);
+        free(left->data);
+        left->data = NULL;
+      }
+      else {
+        l1 = (char*)left->data;
+      }
+      if (right->type == INTEGER_TYPE) {
+        l2 = calloc(32,sizeof(char));
+        sprintf(l2, "%d", *(int*)right->data);
+        free(right->data);
+        right->data = NULL;
+      }
+      else {
+        l2 = (char*)right->data;
+      }
+      val->type = OBJECT_TYPE;
+      strcat(l1, "+"); strcat(l1, l2);
+      val->data = l1;
+      free(l2);
+      return val;
+    }
+    if (left->type == STRING_TYPE || left->type == STRING_TYPE) {
+        strcat((char*) left->data, (char*)right->data);
+        val->type = STRING_TYPE;
+        val->data = strdup((char*)left->data);
+        free(right->data);
+        free(right);
+        free(left->data);
+        free(left);
+        return val;
+    }
+    if (left->data != NULL) {
+      free(left->data);
+    }
+    free(left);
+    if (right->data != NULL) {
+      free(right->data);
+    }
+    free(right);
+    free(val);
+    return NULL;
+  }
 %}
 %union {
     char* str;
@@ -19,36 +160,44 @@
     struct member_vec* membVec;
     struct command_type* com;
     struct ast* ast_type;
-    struct func_impl_type* f_impl_type;
+    struct if_cond_type* if_cond;
+    struct if_expr_type* if_expr;
 }
 
 %token <integer> NUM
 %token <str> WORD
 %token <str> STRING
 %token LET
-%token U32
+%token <str> U32
+%token <str> U64
+%token <str> F32
+%token <str> STR
+%token <str> BOOL
 %token FN
 %token INT
 %token IF
 %token ELSE
 %token FOR
 %token WHILE
-%token EQUALS
-%token NOT_EQUALS
+%token <str> EQUALS
+%token <str> NOT_EQUALS
 %token QUOTE
+%token IN
+%token TWO_POINTS
+%token DOUBLE_PLUS
 
 // Определяем типы для нетерминалов
 
 
-%type <com> command declaration initialization if_expression functionCall
-%type <integer> init assignment
-%type <str> type
-%type <_val> val
+%type <com> command declaration initialization if_expression functionCall function
+%type <str> type cmp
+%type <_val> val expr second assignment init
 %type <memb> par
-%type <valVec> value
+%type <valVec> value  
 %type <membVec> parametrs
 %type <ast_type> functionImplementation brackets_functionImplementation funcImpl
-%type <f_impl_type> function
+%type <if_cond> expression
+%type <if_expr> else_expression
 
 %% /* The grammar follows. */
 
@@ -57,40 +206,41 @@ input:
 | input command {num++;}
 ;
 
-
-
 command:
   declaration {push_back_com(ast->declarations, $1);}
 | initialization {push_back_com(ast->initializations, $1);}
 | functionCall {push_back_com(ast->functionCalls, $1);}
-| function {push_back_fImpl(ast->functions, $1);}
-| if_expression {push_back_fImpl(ast->if_expressions, $1);}
+| function {push_back_com(ast->functions, $1);}
+| if_expression {push_back_com(ast->if_expressions, $1);}
+| while_expression
+| for_expression
+| operation
 ;
 
 declaration:
-  LET WORD ':' type init ';' { int* a = malloc(sizeof(int));
-                               *a = $5;
-                               struct member_type* mem = createMember(createValue(INTEGER_TYPE, a), $2);
+  LET WORD ':' type init ';' { struct member_type* mem = createMember(createValue(getValueType($4), $5->data), $2);
                                $$ = createCommand(num, mem);}
 ;
 
 init:
   assignment {$$ = $1;}
-| %empty {$$ = -1;}
+| %empty {$$ = createValue(NULL_TYPE, NULL);}
 
 initialization:
-  WORD assignment ';' { int* a = malloc(sizeof(int));
-                        *a = $2;
-                        struct member_type* mem = createMember(createValue(INTEGER_TYPE, a), $1);
+  WORD assignment ';' { struct member_type* mem = createMember($2, $1);
                         $$ = createCommand(num, mem);}
 ;
 
 assignment:
-  '=' NUM {$$ = $2;}
+  '=' expr {$$ = $2; }
 ;
 
 type:
-  U32
+  U32  {$$ = $1; free($1);}
+| U64  {$$ = $1; free($1);}
+| F32  {$$ = $1; free($1);}
+| STR  {$$ = $1; free($1);}
+| BOOL {$$ = $1; free($1);}
 ;
 
 functionCall:
@@ -119,24 +269,25 @@ parametrs:
 ;
 
 par:
-  INT WORD {$$ = createMember(createValue(INTEGER_TYPE, NULL), $2);}
+  type WORD {$$ = createMember(createValue(getValueType($1), NULL), $2);}
 | %empty   {$$ = createMember(createValue(NULL_TYPE, NULL), NULL);}
 ;
 
 val:
   STRING { char* str = calloc(64, sizeof(char));
            strcpy(str, $1);
-           $$ = createValue(STRING_TYPE, str);} 
+           $$ = createValue(STRING_TYPE, str); free($1);} 
 | NUM    { int* a = malloc(sizeof(int));
            *a = $1;
            $$ = createValue(INTEGER_TYPE, a);}
 | WORD   { char* str = calloc(64, sizeof(char));
            strcpy(str, $1);
-           $$ = createValue(OBJECT_TYPE, str);}
+           $$ = createValue(OBJECT_TYPE, str); free($1);}
 ;
 
 function:
-  FN WORD '(' parametrs ')' brackets_functionImplementation { $$ = createFuncImpl($2, $4, $6); }
+  FN WORD '(' parametrs ')' brackets_functionImplementation { struct func_impl_type* res = createFuncImpl($2, $4, $6);
+                                                              $$ = createCommand(num, (void*)res);}
 ;
 
 functionImplementation:
@@ -157,21 +308,48 @@ brackets_functionImplementation:
 ;
 
 if_expression:
-  IF expression brackets_functionImplementation else_expression
+  IF expression brackets_functionImplementation else_expression {
+                                                                  struct if_expr_type* res = createIfExpr($2, $3, $4);
+                                                                  $$ = createCommand(num, (void*)res);
+                                                                  }
 ;
 
 else_expression:
-  ELSE brackets_functionImplementation
-| %empty
+  ELSE brackets_functionImplementation {$$ = createIfExpr(NULL, $2, NULL);}
+| %empty {$$ = NULL;}
 ;
 
 expression:
-  val cmp val
+  val cmp val {$$ = createIfCond($2, getValFromValueType($1), getValFromValueType($3));}
 ;
 
 cmp:
-  EQUALS
-| NOT_EQUALS
+  EQUALS {$$ = $1;}
+| NOT_EQUALS {$$ = $1;}
+;
+
+while_expression:
+  WHILE expression brackets_functionImplementation
+;
+
+for_expression:
+  FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation
+;
+
+operation:
+  WORD DOUBLE_PLUS ';'
+;
+
+expr:
+  second '+' expr {$$ = getOp($1, $3, "+");}
+| second '-' expr {$$ = getOp($1, $3, "-");}
+| second          {$$ = $1;}
+;
+
+second:
+  val '*' second {$$ = getOp($1, $3, "*");}
+| val '/' second {$$ = getOp($1, $3, "/");}
+| val            {$$ = $1;}
 ;
 
 %%

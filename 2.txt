@@ -1,4 +1,15 @@
-let a : u32 = 5;
+let a : u32 = 1+2*2;
 print(2, 3, 4);
 print("привет");
-fn print(int x) {print(x);}
+fn print(u32 x) {
+    print("2");
+}
+if x == 2 {
+    print(x);
+}
+while i == 2 {
+    print(2); i = 3;
+}
+for i in 0..5 {i = 5;}
+a++;
+let a : str = 1;

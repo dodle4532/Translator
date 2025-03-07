@@ -14,21 +14,30 @@
 [ \n] ;
 [0-9]+      {yylval.integer = atoi(yytext); return NUM;}
 "let" {return LET;}
-"u32" {return U32;}
+"u32" {yylval.str = strdup(yytext); return U32;}
+"f32" {yylval.str = strdup(yytext); return F32;}
+"u64" {yylval.str = strdup(yytext); return U64;}
+"str" {yylval.str = strdup(yytext); return STR;}
+"BOOL" {yylval.str = strdup(yytext); return BOOL;}
 "fn"  {return FN;}
 "int"  {return INT;}
 "if"  {return IF;}
 "else"  {return ELSE;}
 "for"  {return FOR;}
 "while"  {return WHILE;}
-"=="  {return EQUALS;}
-"!="  {return NOT_EQUALS;}
+"in"  {return IN;}
+"=="  {yylval.str = strdup("=="); return EQUALS;}
+"!="  {yylval.str = strdup("!="); return NOT_EQUALS;}
+".."  {return TWO_POINTS;}
 "\""  {return QUOTE;}
+"++"  {return DOUBLE_PLUS;}
 
 [a-zA-Z][a-zA-Z0-9]* {yylval.str = strdup(yytext); return WORD;}
 ":"      {return ':';}
 "+"      {return '+';}
+"-"      {return '-';}
 "*"      {return '*';}
+"/"      {return '/';}
 ";"      {return ';';}
 ","      {return ',';}
 "="      {return '=';}

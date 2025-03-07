@@ -23,11 +23,27 @@ struct command_type* createCommand(int num, void* command) {
     return com;
 }
 
-struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* astWOfuncImpl) {
+struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* impl) {
     struct func_impl_type* res = calloc(1, sizeof(struct func_impl_type));
     res->name = name;
     res->parametrs = parametrs;
-    res ->astWOfuncImpl = astWOfuncImpl;
+    res ->impl = impl;
+    return res;
+}
+
+struct if_expr_type* createIfExpr(struct if_cond_type* cond, struct ast* body, struct if_expr_type* _else) {
+    struct if_expr_type* res = calloc(1, sizeof(struct if_expr_type));
+    res->cond = cond;
+    res->body = body;
+    res->_else = _else;
+    return res;
+}
+
+struct if_cond_type* createIfCond(char* cmpChar, char* leftVal, char* rightVal) {
+    struct if_cond_type* res = calloc(1, sizeof(struct if_cond_type));
+    res->cmpChar = cmpChar;
+    res->leftVal = leftVal;
+    res->rightVal = rightVal;
     return res;
 }
 
@@ -75,10 +91,10 @@ struct func_call_type* createFuncCall(char* name, struct value_vec* values) {
 struct ast* createAst() {
     struct ast* _ast = calloc(1, sizeof(struct ast));
     _ast->declarations = createCommandVec();
-    _ast->functionCalls = createCommandVec();
-    _ast->functions = createFuncImplVec();
-    _ast->if_expressions = createCommandVec();
     _ast->initializations = createCommandVec();
+    _ast->functionCalls = createCommandVec();
+    _ast->functions = createCommandVec();
+    _ast->if_expressions = createCommandVec();
     return _ast;
 }
 

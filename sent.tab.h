@@ -63,18 +63,24 @@ extern int yydebug;
     F32 = 264,                     /* F32  */
     STR = 265,                     /* STR  */
     BOOL = 266,                    /* BOOL  */
-    FN = 267,                      /* FN  */
-    INT = 268,                     /* INT  */
-    IF = 269,                      /* IF  */
-    ELSE = 270,                    /* ELSE  */
-    FOR = 271,                     /* FOR  */
-    WHILE = 272,                   /* WHILE  */
-    EQUALS = 273,                  /* EQUALS  */
-    NOT_EQUALS = 274,              /* NOT_EQUALS  */
-    QUOTE = 275,                   /* QUOTE  */
-    IN = 276,                      /* IN  */
-    TWO_POINTS = 277,              /* TWO_POINTS  */
-    DOUBLE_PLUS = 278              /* DOUBLE_PLUS  */
+    TRUE = 267,                    /* TRUE  */
+    FALSE = 268,                   /* FALSE  */
+    FN = 269,                      /* FN  */
+    INT = 270,                     /* INT  */
+    IF = 271,                      /* IF  */
+    ELSE = 272,                    /* ELSE  */
+    FOR = 273,                     /* FOR  */
+    WHILE = 274,                   /* WHILE  */
+    EQUALS = 275,                  /* EQUALS  */
+    NOT_EQUALS = 276,              /* NOT_EQUALS  */
+    QUOTE = 277,                   /* QUOTE  */
+    IN = 278,                      /* IN  */
+    TWO_POINTS = 279,              /* TWO_POINTS  */
+    RETURN = 280,                  /* RETURN  */
+    LESS = 281,                    /* LESS  */
+    MORE = 282,                    /* MORE  */
+    EQ_LESS = 283,                 /* EQ_LESS  */
+    EQ_MORE = 284                  /* EQ_MORE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -96,7 +102,7 @@ union YYSTYPE
     struct if_cond_type* if_cond;
     struct if_expr_type* if_expr;
 
-#line 100 "sent.tab.h"
+#line 106 "sent.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

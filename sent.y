@@ -129,7 +129,7 @@
       free(l2);
       return val;
     }
-    if (left->type == STRING_TYPE || left->type == STRING_TYPE) {
+    if (left->type == STRING_TYPE && left->type == STRING_TYPE && op == "+") {
         strcat((char*) left->data, (char*)right->data);
         val->type = STRING_TYPE;
         val->data = strdup((char*)left->data);
@@ -173,6 +173,8 @@
 %token <str> F32
 %token <str> STR
 %token <str> BOOL
+%token TRUE
+%token FALSE
 %token FN
 %token INT
 %token IF
@@ -184,14 +186,18 @@
 %token QUOTE
 %token IN
 %token TWO_POINTS
-%token DOUBLE_PLUS
+%token RETURN
+%token <str> LESS
+%token <str> MORE
+%token <str> EQ_LESS
+%token <str> EQ_MORE
 
 // Определяем типы для нетерминалов
 
 
-%type <com> command declaration initialization if_expression functionCall function
+%type <com> command declaration initialization if_expression functionCall function while_expression for_expression
 %type <str> type cmp
-%type <_val> val expr second assignment init
+%type <_val> val expr second assignment init ret returnVal
 %type <memb> par
 %type <valVec> value  
 %type <membVec> parametrs
@@ -212,9 +218,8 @@ command:
 | functionCall {push_back_com(ast->functionCalls, $1);}
 | function {push_back_com(ast->functions, $1);}
 | if_expression {push_back_com(ast->if_expressions, $1);}
-| while_expression
-| for_expression
-| operation
+| while_expression {push_back_com(ast->cycles, $1);}
+| for_expression {push_back_com(ast->cycles, $1);}
 ;
 
 declaration:
@@ -283,18 +288,34 @@ val:
 | WORD   { char* str = calloc(64, sizeof(char));
            strcpy(str, $1);
            $$ = createValue(OBJECT_TYPE, str); free($1);}
+| TRUE   { int* a = malloc(sizeof(int));
+           *a = 1;
+           $$ = createValue(BOOLEAN_TYPE, a);}
+| FALSE   { int* a = malloc(sizeof(int));
+           *a = 0;
+           $$ = createValue(BOOLEAN_TYPE, a);}
 ;
 
 function:
-  FN WORD '(' parametrs ')' brackets_functionImplementation { struct func_impl_type* res = createFuncImpl($2, $4, $6);
-                                                              $$ = createCommand(num, (void*)res);}
+  FN WORD '(' parametrs ')' '{' functionImplementation ret '}' { struct func_impl_type* res = createFuncImpl($2, $4, $7, $8);
+                                                                          $$ = createCommand(num, (void*)res);}
 ;
 
 functionImplementation:
-  funcImpl                        { $$ = createAst();
+  funcImpl                      { $$ = createAst();
                                     mergeAst($$, $1);}
 | funcImpl functionImplementation { $$ = createAst();
                                     mergeAst($$, $1); mergeAst($$, $2);}
+;
+
+ret:
+  RETURN returnVal ';' {$$ = $2;}
+| %empty {$$ = createValue(NULL_TYPE, NULL);}
+;
+
+returnVal:
+  expr {$$ = $1;}
+| %empty {$$ = createValue(NULL_TYPE, NULL);}
 ;
 
 funcImpl:
@@ -320,35 +341,42 @@ else_expression:
 ;
 
 expression:
-  val cmp val {$$ = createIfCond($2, getValFromValueType($1), getValFromValueType($3));}
+  val cmp val {$$ = createIfCond($2, $1, $3);}
 ;
 
 cmp:
   EQUALS {$$ = $1;}
 | NOT_EQUALS {$$ = $1;}
+| LESS {$$ = $1;}
+| MORE {$$ = $1;}
+| EQ_LESS {$$ = $1;}
+| EQ_MORE {$$ = $1;}
 ;
 
 while_expression:
-  WHILE expression brackets_functionImplementation
+  WHILE expression brackets_functionImplementation {  struct cycle_type* res = createCycle($2, $3);
+                                                      $$ = createCommand(num, (void*)res);}
 ;
 
 for_expression:
-  FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation
-;
-
-operation:
-  WORD DOUBLE_PLUS ';'
+  FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation {int* a = calloc(16, sizeof(int));*a = $4;
+                                                                  int* b = calloc(16, sizeof(int));*b = $6;
+                                                                  push_back_com(ast->declarations, 
+                                                                  createCommand(num, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),$2)));
+                                                                  struct cycle_type* res = createCycle(createIfCond(strdup("<="),
+                                                                  createValue(OBJECT_TYPE,$2),createValue(INTEGER_TYPE,b)), $7);num++;
+                                                                  $$ = createCommand(num, (void*)res);}
 ;
 
 expr:
-  second '+' expr {$$ = getOp($1, $3, "+");}
-| second '-' expr {$$ = getOp($1, $3, "-");}
+  second '+' expr {$$ = getOp($1, $3, "+"); if ($$ == NULL) {YYABORT;}}
+| second '-' expr {$$ = getOp($1, $3, "-"); if ($$ == NULL) {YYABORT;}}
 | second          {$$ = $1;}
 ;
 
 second:
-  val '*' second {$$ = getOp($1, $3, "*");}
-| val '/' second {$$ = getOp($1, $3, "/");}
+  val '*' second {$$ = getOp($1, $3, "*"); if ($$ == NULL) {YYABORT;}}
+| val '/' second {$$ = getOp($1, $3, "/"); if ($$ == NULL) {YYABORT;}}
 | val            {$$ = $1;}
 ;
 

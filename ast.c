@@ -23,11 +23,12 @@ struct command_type* createCommand(int num, void* command) {
     return com;
 }
 
-struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* impl) {
+struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* impl, struct value_type* returnValue) {
     struct func_impl_type* res = calloc(1, sizeof(struct func_impl_type));
     res->name = name;
     res->parametrs = parametrs;
     res ->impl = impl;
+    res->returnValue = returnValue;
     return res;
 }
 
@@ -39,11 +40,19 @@ struct if_expr_type* createIfExpr(struct if_cond_type* cond, struct ast* body, s
     return res;
 }
 
-struct if_cond_type* createIfCond(char* cmpChar, char* leftVal, char* rightVal) {
+struct if_cond_type* createIfCond(char* cmpChar, struct value_type* leftVal, struct value_type* rightVal) {
     struct if_cond_type* res = calloc(1, sizeof(struct if_cond_type));
     res->cmpChar = cmpChar;
     res->leftVal = leftVal;
     res->rightVal = rightVal;
+    return res;
+}
+
+struct cycle_type* createCycle(struct if_cond_type* expr, struct ast* body) {
+    struct cycle_type* res = calloc(1, sizeof(struct cycle_type));
+    res->expr = expr;
+    res->body = body;
+    res->par = NULL;
     return res;
 }
 
@@ -95,6 +104,7 @@ struct ast* createAst() {
     _ast->functionCalls = createCommandVec();
     _ast->functions = createCommandVec();
     _ast->if_expressions = createCommandVec();
+    _ast->cycles = createCommandVec();
     return _ast;
 }
 

@@ -18,20 +18,25 @@
 "f32" {yylval.str = strdup(yytext); return F32;}
 "u64" {yylval.str = strdup(yytext); return U64;}
 "str" {yylval.str = strdup(yytext); return STR;}
-"BOOL" {yylval.str = strdup(yytext); return BOOL;}
+"bool" {yylval.str = strdup(yytext); return BOOL;}
+"true" {yylval.str = strdup(yytext); return TRUE;}
+"false" {yylval.str = strdup(yytext); return TRUE;}
 "fn"  {return FN;}
 "int"  {return INT;}
 "if"  {return IF;}
 "else"  {return ELSE;}
 "for"  {return FOR;}
 "while"  {return WHILE;}
+"return"  {return RETURN;}
 "in"  {return IN;}
 "=="  {yylval.str = strdup("=="); return EQUALS;}
 "!="  {yylval.str = strdup("!="); return NOT_EQUALS;}
+"<"  {yylval.str = strdup("<"); return LESS;}
+"<="  {yylval.str = strdup("<="); return EQ_LESS;}
+">="  {yylval.str = strdup(">="); return EQ_MORE;}
+">"  {yylval.str = strdup(">"); return MORE;}
 ".."  {return TWO_POINTS;}
 "\""  {return QUOTE;}
-"++"  {return DOUBLE_PLUS;}
-
 [a-zA-Z][a-zA-Z0-9]* {yylval.str = strdup(yytext); return WORD;}
 ":"      {return ':';}
 "+"      {return '+';}

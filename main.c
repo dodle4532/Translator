@@ -6,6 +6,7 @@ extern FILE *yyin; // Объявляем yyin
 extern int yyparse();
 
 struct ast* ast;
+extern int num;
 
 int main(int argc, char **argv) {
     int res;
@@ -21,25 +22,24 @@ int main(int argc, char **argv) {
         // }
         return 1;
     }
-    else {
-        FILE *inputFile = fopen(argv[1], "r");
-        if (!inputFile) {
-            return 1;
-        }
-
-        yyin = inputFile;
-        res = yyparse();
-
-        fclose(inputFile);
-        if (res == 0) {
-            printf("ok\n");
-        }
-        else {
-            return 1;
-        }
+    FILE *inputFile = fopen(argv[1], "r");
+    if (!inputFile) {
+        return 1;
     }
-    struct member_type* mem = (struct member_type*)ast->declarations->commands[0]->command;
-    printf("%d %d\n", ast->declarations->commands[0]->num, ast->functionCalls->commands[0]->num);
+
+    yyin = inputFile;
+    res = yyparse();
+
+    fclose(inputFile);
+    if (res == 0) {
+        printf("ok\n");
+    }
+    else {
+        printf("Error in %d\n", num);
+        return 1;
+    }
+    struct member_type* mem = (struct member_type*)ast->declarations->commands[1]->command;
+    printf("%d %d\n", ast->declarations->commands[1]->num, ast->cycles->commands[1]->num);
     printf("%s - %d\n", mem->name, *(int*)mem->value->data);
     struct func_call_type* f = (struct func_call_type*)ast->functionCalls->commands[0]->command;
     printf("%s - %d %d %d\n", f->name, *(int*)f->values->values[0]->data, *(int*)f->values->values[1]->data, *(int*)f->values->values[2]->data);
@@ -47,10 +47,14 @@ int main(int argc, char **argv) {
     printf("%s - %s\n", f1->name, (char*)f1->values->values[0]->data);
     struct func_impl_type* f2 = (struct func_impl_type*)ast->functions->commands[0]->command;
     struct func_call_type* f3 = (struct func_call_type*)f2->impl->functionCalls->commands[0]->command;
-    printf("%s - %s (%s(%s))\n", f2->name, f2->parametrs->members[0]->name, (char*)f3->name, (char*)f3->values->values[0]->data);
+    printf("%s - %s (%s(%s)), return %s\n", f2->name, f2->parametrs->members[0]->name, (char*)f3->name,
+     (char*)f3->values->values[0]->data, f2->returnValue->data);
     struct if_expr_type* f4 = (struct if_expr_type*)ast->if_expressions->commands[0]->command;
     struct func_call_type* f5 = (struct func_call_type*)f4->body->functionCalls->commands[0]->command;
-    printf("%s %s %s : %s\n", f4->cond->leftVal, f4->cond->cmpChar, f4->cond->rightVal, f5->name);
+    printf("%s %s %d : %s\n", f4->cond->leftVal->data, f4->cond->cmpChar, *(int*)f4->cond->rightVal->data, f5->name);
+    struct cycle_type* f6 = (struct cycle_type*)ast->cycles->commands[0]->command;
+    struct member_type* f7 = (struct member_type*)f6->body->initializations->commands[0]->command;
+    printf("%s %s %d {%s = %d}\n", f6->expr->leftVal->data, f6->expr->cmpChar, *(int*)f6->expr->rightVal->data, f7->name, *(int*)f7->value->data);
     return 0;
 }
 // int main(int argc, char **argv) {

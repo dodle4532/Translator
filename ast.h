@@ -46,12 +46,6 @@ struct func_impl_type {
     struct value_type* returnValue;
 };
 
-struct func_impl_vec {
-	struct func_impl_type** functions;
-    size_t size;
-    size_t capacity;
-};
-
 struct if_cond_type {
 	char* cmpChar;
 	struct value_type* leftVal;
@@ -100,11 +94,14 @@ struct cycle_type* createCycle(struct if_cond_type* expr, struct ast* body);
 struct member_vec* createMemberVec();
 struct value_vec* createValueVec();
 struct command_vec* createCommandVec();
-struct func_impl_vec* createFuncImplVec();
 struct func_call_type* createFuncCall(char* name, struct value_vec* values);
 struct ast* createAst();
 void push_back_mem(struct member_vec* mem, struct member_type* member);
 void push_back_val(struct value_vec* val, struct value_type* value);
 void push_back_com(struct command_vec* com, struct command_type* command);
-void push_back_fImpl(struct func_impl_vec* fImpl, struct func_impl_type* functionImplementation);
 void mergeAst(struct ast* first, struct ast* second);
+void free_value_vec(struct value_vec* vec);
+void free_member_vec(struct member_vec* vec);
+void free_func_impl(struct func_impl_type* func_impl);
+void free_command_vec(struct command_vec* vec, int n);
+void freeAst(struct ast* ast);

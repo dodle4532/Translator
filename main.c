@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include "sent.tab.h" // Подключаем заголовочный файл, сгенерированный Bison
 #include "ast.h"
+#include <string.h>
 
-extern FILE *yyin; // Объявляем yyin
+extern FILE *yyin;
 extern int yyparse();
+struct command_vec* sortAst(struct ast* ast);
 
 struct ast* ast;
 extern int num;
@@ -13,13 +15,6 @@ int main(int argc, char **argv) {
     ast = createAst();
     if (argc != 2) {
         printf("No file\n");
-        // res = yyparse();
-        // if (res == 0) {
-        //     printf("ok\n");
-        // }
-        // else {
-        //     return 1;
-        // }
         return 1;
     }
     FILE *inputFile = fopen(argv[1], "r");
@@ -55,6 +50,11 @@ int main(int argc, char **argv) {
     struct cycle_type* f6 = (struct cycle_type*)ast->cycles->commands[0]->command;
     struct member_type* f7 = (struct member_type*)f6->body->initializations->commands[0]->command;
     printf("%s %s %d {%s = %d}\n", f6->expr->leftVal->data, f6->expr->cmpChar, *(int*)f6->expr->rightVal->data, f7->name, *(int*)f7->value->data);
+    
+    struct command_vec* sorted = sortAst(ast);
+
+
+    freeAst(ast);
     return 0;
 }
 // int main(int argc, char **argv) {

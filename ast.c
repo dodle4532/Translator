@@ -80,14 +80,6 @@ struct command_vec* createCommandVec() {
     return com;
 }
 
-struct func_impl_vec* createFuncImplVec() {
-    struct func_impl_vec* fImpl = calloc(1, sizeof(struct func_impl_vec));
-    fImpl->functions = calloc(128, sizeof(struct func_impl_type*)); // попробовать 4
-    fImpl->size = 0;
-    fImpl->capacity = 4;
-    return fImpl;
-}
-
 
 struct func_call_type* createFuncCall(char* name, struct value_vec* values) {
     struct func_call_type* res = calloc(1, sizeof(struct func_call_type));
@@ -110,7 +102,6 @@ struct ast* createAst() {
 
 void push_back_mem(struct member_vec* mem, struct member_type* member) {
     if (mem->size == mem->capacity) {
-        printf("ok");
         // Необходимо увеличить вместимость
         size_t new_capacity = mem->capacity * 2;
         struct member_type** new_data = (struct member_type**)realloc(mem->members, new_capacity * sizeof(struct member_type*));
@@ -129,7 +120,6 @@ void push_back_mem(struct member_vec* mem, struct member_type* member) {
 
 void push_back_val(struct value_vec* val, struct value_type* value) {
     if (val->size == val->capacity) {
-        printf("ok");
         // Необходимо увеличить вместимость
         size_t new_capacity = val->capacity * 2;
         struct value_type** new_data = (struct value_type**)realloc(val->values, new_capacity * sizeof(struct value_type*));
@@ -148,7 +138,6 @@ void push_back_val(struct value_vec* val, struct value_type* value) {
 
 void push_back_com(struct command_vec* com, struct command_type* command) {
     if (com->size == com->capacity) {
-        printf("ok");
         // Необходимо увеличить вместимость
         size_t new_capacity = com->capacity * 2;
         struct command_type** new_data = (struct command_type**)realloc(com->commands, new_capacity * sizeof(struct command_type*));
@@ -165,24 +154,6 @@ void push_back_com(struct command_vec* com, struct command_type* command) {
     return;
 }
 
-void push_back_fImpl(struct func_impl_vec* fImpl, struct func_impl_type* functionImplementation) {
-    if (fImpl->size == fImpl->capacity) {
-        printf("ok");
-        // Необходимо увеличить вместимость
-        size_t new_capacity = fImpl->capacity * 2;
-        struct func_impl_type** new_data = (struct func_impl_type**)realloc(fImpl->functions, new_capacity * sizeof(struct func_impl_type*));
-        if (new_data == NULL) {
-            fprintf(stderr, "Ошибка перевыделения памяти для данных вектора\n");
-            return; // Indicate failure
-        }
-        fImpl->functions = new_data;
-        fImpl->capacity = new_capacity;
-    }
-
-    fImpl->functions[fImpl->size] = functionImplementation;
-    fImpl->size++;
-    return;
-}
 
 void mergeAst(struct ast* first, struct ast* second) {
     for (int i = 0; i < second->declarations->size; ++i) {
@@ -201,4 +172,224 @@ void mergeAst(struct ast* first, struct ast* second) {
         push_back_com(first->if_expressions, second->if_expressions->commands[i]);
     }
     return;
+}
+
+void free_value_vec(struct value_vec* vec) {
+    if (vec) {
+        if (vec->values) {
+            for (size_t i = 0; i < vec->size; ++i) {
+                if (vec->values[i]) {
+                  if(vec->values[i]->data){
+                      free(vec->values[i]->data);
+                  }
+                  free(vec->values[i]);
+                }
+            }
+            free(vec->values);
+        }
+        free(vec);
+    }
+}
+
+void free_member_vec(struct member_vec* vec) {
+    if (vec) {
+        if (vec->members) {
+            for (size_t i = 0; i < vec->size; ++i) {
+                if (vec->members[i]) {
+                    if (vec->members[i]->name) {
+                        free(vec->members[i]->name);
+                    }
+                    if (vec->members[i]->value) {
+                        if(vec->members[i]->value->data){
+                            free(vec->members[i]->value->data);
+                        }
+                        free(vec->members[i]->value);
+                    }
+                    free(vec->members[i]);
+                }
+            }
+            free(vec->members);
+        }
+        free(vec);
+    }
+}
+
+void free_func_impl(struct func_impl_type* func_impl) {
+    if (func_impl) {
+        if(func_impl->name){
+            free(func_impl->name);
+        }
+
+        if(func_impl->parametrs){
+            free_member_vec(func_impl->parametrs);
+        }
+
+        if(func_impl->impl){
+            freeAst(func_impl->impl);
+        }
+        if(func_impl->returnValue){
+            if(func_impl->returnValue->data){
+                free(func_impl->returnValue->data);
+            }
+            free(func_impl->returnValue);
+        }
+
+        free(func_impl);
+    }
+}
+
+void free_command_vec(struct command_vec* vec, int n) {
+    if (vec) {
+        if (vec->commands) {
+            for (size_t i = 0; i < vec->size; ++i) {
+                if (vec->commands[i]) {
+                    // Determine the type of command and free accordingly
+                    switch (n) {
+                        case 1: // Assuming 1 is for declarations (value_type)
+                            if (vec->commands[i]->command) {
+                                struct value_type* val = (struct value_type*)vec->commands[i]->command;
+                                if(val->data){
+                                    free(val->data);
+                                }
+                                free(val);
+                            }
+                            break;
+                        case 2: // Assuming 2 is for initializations (value_type)
+                            if (vec->commands[i]->command) {
+                                struct value_type* val = (struct value_type*)vec->commands[i]->command;
+                                if(val->data){
+                                    free(val->data);
+                                }
+                                free(val);
+                            }
+                            break;
+                        case 3: // Assuming 3 is for function calls (func_call_type)
+                            if (vec->commands[i]->command) {
+                                struct func_call_type* func_call = (struct func_call_type*)vec->commands[i]->command;
+                                if (func_call->name) {
+                                    free(func_call->name);
+                                }
+                                if (func_call->values) {
+                                    free_value_vec(func_call->values);
+                                }
+                                free(func_call);
+                            }
+                            break;
+                        case 4: // Assuming 4 is for functions (func_impl_type)
+                            // Functions are freed by the free_func_impl_vec
+                            break;
+                        case 5: // Assuming 5 is for if_expressions (if_expr_type)
+                            if (vec->commands[i]->command) {
+                                struct if_expr_type* if_expr = (struct if_expr_type*)vec->commands[i]->command;
+                                if (if_expr->cond) {
+                                    if(if_expr->cond->cmpChar){
+                                        free(if_expr->cond->cmpChar);
+                                    }
+                                    if (if_expr->cond->leftVal) {
+                                        if(if_expr->cond->leftVal->data){
+                                          free(if_expr->cond->leftVal->data);
+                                        }
+                                        free(if_expr->cond->leftVal);
+                                    }
+                                    if (if_expr->cond->rightVal) {
+                                        if(if_expr->cond->rightVal->data){
+                                          free(if_expr->cond->rightVal->data);
+                                        }
+                                        free(if_expr->cond->rightVal);
+                                    }
+                                    free(if_expr->cond);
+                                }
+                                if (if_expr->body) {
+                                    freeAst(if_expr->body);
+                                }
+                                if (if_expr->_else) {
+                                    freeAst(if_expr->_else->body);
+                                    free(if_expr->_else);
+                                }
+
+                                free(if_expr);
+                            }
+                            break;
+                         case 6: // Assuming 6 is for cycles (cycle_type)
+                            if (vec->commands[i]->command) {
+                                struct cycle_type* cycle = (struct cycle_type*)vec->commands[i]->command;
+                                if (cycle->expr) {
+                                     if(cycle->expr->cmpChar){
+                                        free(cycle->expr->cmpChar);
+                                    }
+                                    if (cycle->expr->leftVal) {
+                                         if(cycle->expr->leftVal->data){
+                                              free(cycle->expr->leftVal->data);
+                                         }
+                                        free(cycle->expr->leftVal);
+                                    }
+                                    if (cycle->expr->rightVal) {
+                                        if(cycle->expr->rightVal->data){
+                                          free(cycle->expr->rightVal->data);
+                                        }
+                                        free(cycle->expr->rightVal);
+                                    }
+                                    free(cycle->expr);
+                                }
+                                if (cycle->body) {
+                                    freeAst(cycle->body);
+                                }
+                                if (cycle->par) {
+                                  free(cycle->par);
+                                }
+                                free(cycle);
+                            }
+                            break;
+
+                        default:
+                            printf("Unknown command type: %d\n", vec->commands[i]->num);
+                            break;
+                    }
+                    free(vec->commands[i]);
+                }
+            }
+            free(vec->commands);
+        }
+        free(vec);
+    }
+}
+
+
+void freeAst(struct ast* ast) {
+    if (ast) {
+        if (ast->declarations) {
+            free_command_vec(ast->declarations, 1);
+        }
+        if (ast->initializations) {
+            free_command_vec(ast->initializations, 2);
+        }
+        if (ast->functionCalls) {
+            free_command_vec(ast->functionCalls, 3);
+        }
+        if (ast->functions) {
+            // First, get the command_vec
+            struct command_vec* func_command_vec = ast->functions;
+            // Check if commands exist in command_vec
+            if (func_command_vec && func_command_vec->commands) {
+                // Iterate through commands and extract func_impl_type
+                for (size_t i = 0; i < func_command_vec->size; i++) {
+                    if (func_command_vec->commands[i]) {
+                        struct func_impl_type* func_impl = (struct func_impl_type*)func_command_vec->commands[i]->command;
+                        free_func_impl(func_impl);
+                        free(func_command_vec->commands[i]); // Освобождаем command_type
+
+                    }
+                }
+                free(func_command_vec->commands); // Освобождаем массив commands
+            }
+            free(func_command_vec); // Освобождаем сам command_vec
+        }
+        if (ast->if_expressions) {
+            free_command_vec(ast->if_expressions, 5);
+        }
+        if (ast->cycles) {
+            free_command_vec(ast->cycles, 6);
+        }
+        free(ast);
+    }
 }

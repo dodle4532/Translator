@@ -2,6 +2,27 @@
 #include <stdio.h>
 #include <string.h>
 
+const char* getStrFromValueType(enum VALUE_TYPE type) {
+    switch (type)
+    {
+    case 0:
+        return "str";
+    case 1:
+        return "obj";
+    case 2:
+        return "float";
+    case 3:
+        return "int";
+    case 4:
+        return "bool";
+    case 5:
+        return "null";
+    default:
+        break;
+    }
+    return "";
+}
+
 struct value_type* createValue(enum VALUE_TYPE type, void* data) {
     struct value_type* val = calloc(1, sizeof(struct value_type));
     val->data = data;

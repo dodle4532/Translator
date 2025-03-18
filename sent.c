@@ -1390,7 +1390,7 @@ yyreduce:
   case 11: /* declaration: LET WORD ':' type init ';'  */
 #line 226 "sent.y"
                              { struct member_type* mem = createMember(createValue(getValueType((yyvsp[-2].str)), (yyvsp[-1]._val)->data), (yyvsp[-4].str));
-                               (yyval.com) = createCommand(num, mem);}
+                               (yyval.com) = createCommand(num, mem); free((yyvsp[-2].str));}
 #line 1395 "sent.c"
     break;
 
@@ -1415,37 +1415,37 @@ yyreduce:
 
   case 15: /* assignment: '=' expr  */
 #line 240 "sent.y"
-           {(yyval._val) = (yyvsp[0]._val); }
+           {(yyval._val) = (yyvsp[0]._val);}
 #line 1420 "sent.c"
     break;
 
   case 16: /* type: U32  */
 #line 244 "sent.y"
-       {(yyval.str) = (yyvsp[0].str); free((yyvsp[0].str));}
+       {(yyval.str) = (yyvsp[0].str);}
 #line 1426 "sent.c"
     break;
 
   case 17: /* type: U64  */
 #line 245 "sent.y"
-       {(yyval.str) = (yyvsp[0].str); free((yyvsp[0].str));}
+       {(yyval.str) = (yyvsp[0].str);}
 #line 1432 "sent.c"
     break;
 
   case 18: /* type: F32  */
 #line 246 "sent.y"
-       {(yyval.str) = (yyvsp[0].str); free((yyvsp[0].str));}
+       {(yyval.str) = (yyvsp[0].str);}
 #line 1438 "sent.c"
     break;
 
   case 19: /* type: STR  */
 #line 247 "sent.y"
-       {(yyval.str) = (yyvsp[0].str); free((yyvsp[0].str));}
+       {(yyval.str) = (yyvsp[0].str);}
 #line 1444 "sent.c"
     break;
 
   case 20: /* type: BOOL  */
 #line 248 "sent.y"
-       {(yyval.str) = (yyvsp[0].str); free((yyvsp[0].str));}
+       {(yyval.str) = (yyvsp[0].str);}
 #line 1450 "sent.c"
     break;
 

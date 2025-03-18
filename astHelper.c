@@ -1,5 +1,7 @@
 #include "ast.h"
 #include <stdio.h>
+#include <string.h>
+
 void quickSort(struct command_type** numbers, int left, int right)
 {
     struct command_type* pivot; // разрешающий элемент
@@ -58,4 +60,53 @@ struct command_vec* sortAst(struct ast* ast) {
 
     quickSort(res->commands, 0, res->size-1);
     return res;
+}
+
+struct command_type* findValue(struct ast* ast, char* name) {
+    for (int i = 0; i < ast->declarations->size; ++i) {
+        struct member_type* mem = ast->declarations->commands[i]->command;
+        if (!strcmp(name, mem->name)) {
+            return ast->declarations->commands[i];
+        }
+    }
+    return NULL;
+}
+
+struct value_type* getValue(struct command_type* com) {
+    if (!com) {
+        return NULL;
+    }
+    struct member_type* mem = com->command;
+    return mem->value;
+}
+
+bool transformAst(struct ast* ast) {
+    for (int i = 0; i < ast->declarations->size; ++i) {
+        for (int j = i + 1; j < ast->declarations->size; ++j) {
+            struct member_type* mem1 = ast->declarations->commands[i]->command;
+            struct member_type* mem2 = ast->declarations->commands[j]->command;
+            if (!strcmp(mem1->name, mem2->name)) {
+                printf("Redeclaration of %s in %d\n", mem1->name, ast->declarations->commands[j]->num);
+                return false;
+            }
+        }
+    }
+    for (int i = 0; i < ast->initializations->size; ++i) {
+        int num = ast->initializations->commands[i]->num;
+        struct member_type* mem = ast->initializations->commands[i]->command;
+        struct command_type* com = findValue(ast, mem->name);
+        struct value_type* val = getValue(com);
+        if (!com || num < com->num) {
+            printf("No such variable - %s in %d\n", mem->name, num);
+            return false;
+        }
+        if (mem->value->type != val->type) {
+            printf("Incompletable types: trying to init %s to %s in %d\n", getStrFromValueType(mem->value->type),
+            getStrFromValueType(val->type), num);
+            return false;
+        }
+        free(val->data);
+        val->data = mem->value->data;
+    }
+    return true;
 }

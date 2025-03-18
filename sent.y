@@ -224,7 +224,7 @@ command:
 
 declaration:
   LET WORD ':' type init ';' { struct member_type* mem = createMember(createValue(getValueType($4), $5->data), $2);
-                               $$ = createCommand(num, mem);}
+                               $$ = createCommand(num, mem); free($4);}
 ;
 
 init:
@@ -237,15 +237,15 @@ initialization:
 ;
 
 assignment:
-  '=' expr {$$ = $2; }
+  '=' expr {$$ = $2;}
 ;
 
 type:
-  U32  {$$ = $1; free($1);}
-| U64  {$$ = $1; free($1);}
-| F32  {$$ = $1; free($1);}
-| STR  {$$ = $1; free($1);}
-| BOOL {$$ = $1; free($1);}
+  U32  {$$ = $1;}
+| U64  {$$ = $1;}
+| F32  {$$ = $1;}
+| STR  {$$ = $1;}
+| BOOL {$$ = $1;}
 ;
 
 functionCall:

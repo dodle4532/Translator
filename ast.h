@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+typedef enum {false, true} bool;
+
 enum VALUE_TYPE
 {
   STRING_TYPE,
@@ -84,6 +86,7 @@ struct ast {
     struct command_vec* cycles;
 };
 
+const char* getStrFromValueType(enum VALUE_TYPE type);
 struct value_type* createValue(enum VALUE_TYPE type, void* data); 
 struct member_type* createMember(struct value_type* val, char* name);
 struct command_type* createCommand(int num, void* command);

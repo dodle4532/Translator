@@ -37,7 +37,7 @@
 ">"  {yylval.str = strdup(">"); return MORE;}
 ".."  {return TWO_POINTS;}
 "\""  {return QUOTE;}
-[a-zA-Z][a-zA-Z0-9]* {yylval.str = strdup(yytext); return WORD;}
+[a-zA-Z][a-zA-Z0-9!]* {yylval.str = strdup(yytext); return WORD;}
 ":"      {return ':';}
 "+"      {return '+';}
 "-"      {return '-';}
@@ -51,12 +51,54 @@
 "{"      {return '{';}
 "}"      {return '}';}
 
-\"([^\"\n])*\" { const char* str_start = yytext + 1;
-                 int len = strlen(yytext) - 2;
-                 char* new_str = (char*)malloc(len + 1); // +1 для завершающего нуля
-                 strncpy(new_str, str_start, len);
-                 new_str[len] = '\0';
-                 yylval.str = new_str;
-                 return STRING;}
+\"([^\"\n])*\" {
+    const char* str_start = yytext + 1;
+    int len = strlen(yytext) - 2;
+    char* new_str = (char*)malloc(len + 1);
+    int j = 0; // Индекс для записи в new_str
+    for (int i = 0; i < len; ++i) {
+        if (str_start[i] == '\\') {
+            // Обработка escape-последовательности
+            switch (str_start[i + 1]) {
+                case 'n':
+                    new_str[j++] = '\n';
+                    i++; // Пропускаем 'n'
+                    break;
+                case 't':
+                    new_str[j++] = '\t';
+                    i++; // Пропускаем 't'
+                    break;
+                case '\\':
+                    new_str[j++] = '\\';
+                    i++; // Пропускаем второй '\'
+                    break;
+                case '"':
+                    new_str[j++] = '"';
+                    i++; // Пропускаем '"'
+                    break;
+                default:
+                    // Неизвестная escape-последовательность, просто копируем '\' и следующий символ
+                    new_str[j++] = str_start[i];
+                    break;
+
+            }
+        } else {
+            new_str[j++] = str_start[i];
+        }
+    }
+    new_str[j] = '\0'; // Null-terminate the string
+
+    // Теперь, если j < len, значит были escape-последовательности, и можно уменьшить размер выделенной памяти
+    if (j < len) {
+      new_str = (char*)realloc(new_str, j + 1); //realloc
+      if (!new_str) {
+        fprintf(stderr, "Memory reallocation failed!\n");
+        exit(1);
+      }
+    }
+
+    yylval.str = new_str;
+    return STRING;
+}
 
 %%

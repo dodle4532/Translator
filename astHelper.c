@@ -110,3 +110,88 @@ bool transformAst(struct ast* ast) {
     }
     return true;
 }
+
+char* getValFromValueType(struct value_type* val) {
+    if (val->type == NULL_TYPE || val->type == STRING_TYPE || val->type == OBJECT_TYPE) {
+      return strdup((char*)val->data);
+    } 
+    if (val->type == INTEGER_TYPE) {
+        char* res = calloc(16, sizeof(char));
+        sprintf(res, "%d", *(int*)val->data);
+        return res;
+    }
+    return NULL;
+}
+
+bool doFunc(struct ast* ast, struct func_call_type* call) {
+    char* name = call->name;
+    if (!strcmp(name, "println!")) {
+        char* tmp = calloc(256, sizeof(char));
+        int size = 0;
+        for (int i = 0; i < call->values->size; ++i) {
+            if (call->values->values[i]->type != STRING_TYPE) {
+                printf("Invalid argument for func call %s\n", name);
+            }
+            strcat(tmp, (char*)(call->values->values[i]->data));
+            size += strlen((char*)(call->values->values[i]->data));
+        }
+        char* tmpToFree = tmp;
+        char* res = calloc(512, sizeof(char));
+        char* placeholder_location = strstr(tmp, "{");
+        while (placeholder_location != NULL) {
+            int prefix_length = placeholder_location - tmp + 1;
+            char* value = calloc(32, sizeof(char));
+            int t = 0;
+            for (int i = prefix_length; i < 256; ++i) {
+                t++;
+                if (tmp[i] == ' ') {
+                    continue;
+                }
+                if (tmp[i] == '}') {
+                    break;
+                }
+                value[i - prefix_length] = tmp[i];
+            }
+            strncat(res, tmp, prefix_length-1);
+            struct command_type* com = findValue(ast, value);
+            if (!com) {
+                printf("Undefined reference to %s\n", value);
+                return false;
+            }
+            char* str = getValFromValueType(getValue(com));
+            strcat(res, str);
+            tmp += prefix_length + t;
+            size -= prefix_length + t;
+            free(str);
+            placeholder_location = strstr(tmp, "{");
+        }
+        strncat(res, tmp, size);
+        printf("%s", res);
+        free(res);
+        free(tmpToFree);
+        return true;
+    }
+    struct func_impl_type* impl;
+    bool isFind = false;
+    for (int i = 0; i < ast->functions->size; ++i) {
+        impl = ast->functions->commands[i]->command;
+        if (!strcmp(name, impl->name)) {
+            isFind = true;
+        }
+    }
+    if (!isFind) {
+        printf("Implementation of funciton %s not found\n", name);
+        return false;
+    }
+}
+
+bool doAllFunc(struct ast* ast) {
+    for (int i = 0; i < ast->functionCalls->size; ++i) {
+        struct func_call_type* f = ast->functionCalls->commands[i]->command;
+        bool res = doFunc(ast, f);
+        if (!res) {
+            return false;
+        }
+    }
+    return true;
+}

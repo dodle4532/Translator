@@ -410,7 +410,7 @@ static const YY_CHAR yy_ec[256] =
 
 static const YY_CHAR yy_meta[42] =
     {   0,
-        1,    1,    2,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    2,    1,    3,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    3,    3,    3,    3,    3,    1,
         1,    1,    1,    1,    3,    3,    3,    3,    3,    3,
         3,    3,    3,    3,    3,    3,    3,    3,    3,    1,
@@ -986,20 +986,62 @@ YY_RULE_SETUP
 case 41:
 YY_RULE_SETUP
 #line 54 "lex.l"
-{ const char* str_start = yytext + 1;
-                 int len = strlen(yytext) - 2;
-                 char* new_str = (char*)malloc(len + 1); // +1 для завершающего нуля
-                 strncpy(new_str, str_start, len);
-                 new_str[len] = '\0';
-                 yylval.str = new_str;
-                 return STRING;}
+{
+    const char* str_start = yytext + 1;
+    int len = strlen(yytext) - 2;
+    char* new_str = (char*)malloc(len + 1);
+    int j = 0; // Индекс для записи в new_str
+    for (int i = 0; i < len; ++i) {
+        if (str_start[i] == '\\') {
+            // Обработка escape-последовательности
+            switch (str_start[i + 1]) {
+                case 'n':
+                    new_str[j++] = '\n';
+                    i++; // Пропускаем 'n'
+                    break;
+                case 't':
+                    new_str[j++] = '\t';
+                    i++; // Пропускаем 't'
+                    break;
+                case '\\':
+                    new_str[j++] = '\\';
+                    i++; // Пропускаем второй '\'
+                    break;
+                case '"':
+                    new_str[j++] = '"';
+                    i++; // Пропускаем '"'
+                    break;
+                default:
+                    // Неизвестная escape-последовательность, просто копируем '\' и следующий символ
+                    new_str[j++] = str_start[i];
+                    break;
+
+            }
+        } else {
+            new_str[j++] = str_start[i];
+        }
+    }
+    new_str[j] = '\0'; // Null-terminate the string
+
+    // Теперь, если j < len, значит были escape-последовательности, и можно уменьшить размер выделенной памяти
+    if (j < len) {
+      new_str = (char*)realloc(new_str, j + 1); //realloc
+      if (!new_str) {
+        fprintf(stderr, "Memory reallocation failed!\n");
+        exit(1);
+      }
+    }
+
+    yylval.str = new_str;
+    return STRING;
+}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 62 "lex.l"
+#line 104 "lex.l"
 ECHO;
 	YY_BREAK
-#line 1003 "lex.yy.c"
+#line 1045 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2004,6 +2046,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 62 "lex.l"
+#line 104 "lex.l"
 
 

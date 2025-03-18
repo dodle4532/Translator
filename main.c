@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "sent.tab.h" // Подключаем заголовочный файл, сгенерированный Bison
+#include "sent.tab.h"
 #include "ast.h"
 #include <string.h>
 #include "astHelper.h"
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     if (res != 0) {
         printf("Error in %d\n", num);
         return 1;
-    }
+    } 
     // struct member_type* mem = (struct member_type*)ast->declarations->commands[1]->command;
     // printf("%d %d\n", ast->declarations->commands[1]->num, ast->cycles->commands[1]->num);
     // printf("%s - %d\n", mem->name, *(int*)mem->value->data);
@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
     if (!transformAst(ast)) {
         return 1;
     }
+    doAllFunc(ast);
     // struct command_vec* sorted = sortAst(ast);
     freeAst(ast);
     return 0;

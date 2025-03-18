@@ -1,3 +1,5 @@
+let a : str = "Ксюша молодец";
+println("Правда ли, что {a}? - ДА!!!!!!");
 print(2, 3, 4);
 print("привет");
 fn print(u32 x) {
@@ -9,3 +11,5 @@ if x == 2 {
 while i == 2 {
     print(2); i = 3;
 }
+for i in 0..5 {i = 5;}
+let b : bool = false;

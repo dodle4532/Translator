@@ -9,17 +9,6 @@
   void yyerror (char *s);
   extern struct ast* ast;
   int num = 1;
-  char* getValFromValueType(struct value_type* val) {
-      if (val->type == NULL_TYPE || val->type == STRING_TYPE || val->type == OBJECT_TYPE) {
-        return strdup((char*)val->data);
-      } 
-      if (val->type == INTEGER_TYPE) {
-          char* res = calloc(16, sizeof(char));
-          sprintf(res, "%d", *(int*)val->data);
-          return res;
-      }
-      return NULL;
-  }
   enum VALUE_TYPE getValueType(char* val) {
       if (!strcmp(val, "bool")) {
           return BOOLEAN_TYPE;

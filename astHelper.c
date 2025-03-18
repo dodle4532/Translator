@@ -35,7 +35,6 @@ void quickSort(struct command_type** numbers, int left, int right)
 }
 
 
-
 struct command_vec* sortAst(struct ast* ast) {
     struct command_vec* res = createCommandVec();
     for (int i = 0; i < ast->cycles->size; ++i) {

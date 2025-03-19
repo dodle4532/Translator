@@ -75,6 +75,7 @@
   #include <string.h>
   #include "lex.h"
   #include "ast.h"
+  #include "astHelper.h"
   int yylex (void);
   void yyerror (char *s);
   extern struct ast* ast;
@@ -210,7 +211,7 @@
     return NULL;
   }
 
-#line 214 "sent.c"
+#line 215 "sent.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -641,7 +642,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  27
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  61
+#define YYNRULES  62
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  101
 
@@ -695,13 +696,13 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   200,   200,   201,   205,   206,   207,   208,   209,   210,
-     211,   215,   220,   221,   224,   229,   233,   234,   235,   236,
-     237,   241,   246,   248,   256,   258,   266,   267,   271,   274,
-     277,   280,   283,   289,   294,   296,   301,   302,   306,   307,
-     311,   312,   313,   317,   321,   328,   329,   333,   337,   338,
-     339,   340,   341,   342,   346,   351,   361,   362,   363,   367,
-     368,   369
+       0,   201,   201,   202,   206,   207,   208,   209,   210,   211,
+     212,   216,   227,   228,   231,   236,   240,   241,   242,   243,
+     244,   248,   253,   254,   256,   264,   266,   274,   275,   279,
+     282,   285,   288,   291,   297,   302,   303,   307,   308,   312,
+     313,   317,   318,   319,   323,   327,   334,   335,   339,   343,
+     344,   345,   346,   347,   348,   352,   357,   367,   368,   369,
+     373,   374,   375
 };
 #endif
 
@@ -770,16 +771,16 @@ static const yytype_int8 yypact[] =
 static const yytype_int8 yydefact[] =
 {
        2,     0,     1,     0,     0,     0,     0,     0,     0,     3,
-       4,     5,     6,     7,     8,     9,    10,     0,     0,     0,
-       0,     0,    29,    30,    28,    31,    32,     0,     0,     0,
-       0,    61,    15,    58,     0,    22,    14,     0,    27,    48,
-      49,    50,    51,    52,    53,     0,     0,    46,     0,    54,
-       0,     0,     0,     0,     0,     0,    16,    17,    18,    19,
-      20,    13,     0,     0,    24,    47,    42,    41,    40,     0,
-      34,     0,    44,     0,    59,    60,    56,    57,    21,    23,
-       0,    12,    26,     0,    27,    43,    35,    45,     0,    11,
-       0,    25,     0,    37,    55,    39,     0,     0,    38,    33,
-      36
+       4,     5,     6,     7,     8,     9,    10,     0,    22,     0,
+       0,     0,    30,    31,    29,    32,    33,     0,     0,     0,
+       0,    62,    15,    59,     0,    23,    14,     0,    28,    49,
+      50,    51,    52,    53,    54,     0,     0,    47,     0,    55,
+       0,     0,     0,     0,     0,    22,    16,    17,    18,    19,
+      20,    13,     0,     0,    25,    48,    43,    42,    41,     0,
+      35,     0,    45,     0,    60,    61,    57,    58,    21,    24,
+       0,    12,    27,     0,    28,    44,    36,    46,     0,    11,
+       0,    26,     0,    38,    56,    40,     0,     0,    39,    34,
+      37
 };
 
 /* YYPGOTO[NTERM-NUM].  */
@@ -849,11 +850,11 @@ static const yytype_int8 yyr1[] =
 {
        0,    42,    43,    43,    44,    44,    44,    44,    44,    44,
       44,    45,    46,    46,    47,    48,    49,    49,    49,    49,
-      49,    50,    51,    51,    52,    52,    53,    53,    54,    54,
-      54,    54,    54,    55,    56,    56,    57,    57,    58,    58,
-      59,    59,    59,    60,    61,    62,    62,    63,    64,    64,
-      64,    64,    64,    64,    65,    66,    67,    67,    67,    68,
-      68,    68
+      49,    50,    51,    51,    51,    52,    52,    53,    53,    54,
+      54,    54,    54,    54,    55,    56,    56,    57,    57,    58,
+      58,    59,    59,    59,    60,    61,    62,    62,    63,    64,
+      64,    64,    64,    64,    64,    65,    66,    67,    67,    67,
+      68,    68,    68
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -861,11 +862,11 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     2,     1,     1,     1,     1,     1,     1,
        1,     6,     1,     0,     3,     2,     1,     1,     1,     1,
-       1,     5,     1,     3,     1,     3,     2,     0,     1,     1,
-       1,     1,     1,     9,     1,     2,     3,     0,     1,     0,
-       1,     1,     1,     3,     4,     2,     0,     3,     1,     1,
-       1,     1,     1,     1,     3,     7,     3,     3,     1,     3,
-       3,     1
+       1,     5,     0,     1,     3,     1,     3,     2,     0,     1,
+       1,     1,     1,     1,     9,     1,     2,     3,     0,     1,
+       0,     1,     1,     1,     3,     4,     2,     0,     3,     1,
+       1,     1,     1,     1,     1,     3,     7,     3,     3,     1,
+       3,     3,     1
 };
 
 
@@ -1329,349 +1330,359 @@ yyreduce:
   switch (yyn)
     {
   case 3: /* input: input command  */
-#line 201 "sent.y"
+#line 202 "sent.y"
                 {num++;}
-#line 1335 "sent.c"
+#line 1336 "sent.c"
     break;
 
   case 4: /* command: declaration  */
-#line 205 "sent.y"
+#line 206 "sent.y"
               {push_back_com(ast->declarations, (yyvsp[0].com));}
-#line 1341 "sent.c"
+#line 1342 "sent.c"
     break;
 
   case 5: /* command: initialization  */
-#line 206 "sent.y"
+#line 207 "sent.y"
                  {push_back_com(ast->initializations, (yyvsp[0].com));}
-#line 1347 "sent.c"
+#line 1348 "sent.c"
     break;
 
   case 6: /* command: functionCall  */
-#line 207 "sent.y"
+#line 208 "sent.y"
                {push_back_com(ast->functionCalls, (yyvsp[0].com));}
-#line 1353 "sent.c"
+#line 1354 "sent.c"
     break;
 
   case 7: /* command: function  */
-#line 208 "sent.y"
+#line 209 "sent.y"
            {push_back_com(ast->functions, (yyvsp[0].com));}
-#line 1359 "sent.c"
+#line 1360 "sent.c"
     break;
 
   case 8: /* command: if_expression  */
-#line 209 "sent.y"
+#line 210 "sent.y"
                 {push_back_com(ast->if_expressions, (yyvsp[0].com));}
-#line 1365 "sent.c"
+#line 1366 "sent.c"
     break;
 
   case 9: /* command: while_expression  */
-#line 210 "sent.y"
+#line 211 "sent.y"
                    {push_back_com(ast->cycles, (yyvsp[0].com));}
-#line 1371 "sent.c"
+#line 1372 "sent.c"
     break;
 
   case 10: /* command: for_expression  */
-#line 211 "sent.y"
+#line 212 "sent.y"
                  {push_back_com(ast->cycles, (yyvsp[0].com));}
-#line 1377 "sent.c"
+#line 1378 "sent.c"
     break;
 
   case 11: /* declaration: LET WORD ':' type init ';'  */
-#line 215 "sent.y"
-                             { struct member_type* mem = createMember(createValue(getValueType((yyvsp[-2].str)), (yyvsp[-1]._val)->data), (yyvsp[-4].str));
+#line 216 "sent.y"
+                             { if ((yyvsp[-1]._val)->type != OBJECT_TYPE) {
+                                 if ((yyvsp[-1]._val)->type != getValueType((yyvsp[-2].str))) {
+                                  printf("Incorrect types for %s\n", (yyvsp[-4].str));
+                                  YYABORT;
+                                 }                           
+                               }
+                               struct member_type* mem = createMember(createValue(getValueType((yyvsp[-2].str)), (yyvsp[-1]._val)->data), (yyvsp[-4].str));
                                (yyval.com) = createCommand(num, mem); free((yyvsp[-2].str));}
-#line 1384 "sent.c"
+#line 1391 "sent.c"
     break;
 
   case 12: /* init: assignment  */
-#line 220 "sent.y"
+#line 227 "sent.y"
              {(yyval._val) = (yyvsp[0]._val);}
-#line 1390 "sent.c"
+#line 1397 "sent.c"
     break;
 
   case 13: /* init: %empty  */
-#line 221 "sent.y"
+#line 228 "sent.y"
          {(yyval._val) = createValue(NULL_TYPE, NULL);}
-#line 1396 "sent.c"
-    break;
-
-  case 14: /* initialization: WORD assignment ';'  */
-#line 224 "sent.y"
-                      { struct member_type* mem = createMember((yyvsp[-1]._val), (yyvsp[-2].str));
-                        (yyval.com) = createCommand(num, mem);}
 #line 1403 "sent.c"
     break;
 
+  case 14: /* initialization: WORD assignment ';'  */
+#line 231 "sent.y"
+                      { struct member_type* mem = createMember((yyvsp[-1]._val), (yyvsp[-2].str));
+                        (yyval.com) = createCommand(num, mem);}
+#line 1410 "sent.c"
+    break;
+
   case 15: /* assignment: '=' expr  */
-#line 229 "sent.y"
+#line 236 "sent.y"
            {(yyval._val) = (yyvsp[0]._val);}
-#line 1409 "sent.c"
+#line 1416 "sent.c"
     break;
 
   case 16: /* type: U32  */
-#line 233 "sent.y"
+#line 240 "sent.y"
        {(yyval.str) = (yyvsp[0].str);}
-#line 1415 "sent.c"
+#line 1422 "sent.c"
     break;
 
   case 17: /* type: U64  */
-#line 234 "sent.y"
+#line 241 "sent.y"
        {(yyval.str) = (yyvsp[0].str);}
-#line 1421 "sent.c"
+#line 1428 "sent.c"
     break;
 
   case 18: /* type: F32  */
-#line 235 "sent.y"
+#line 242 "sent.y"
        {(yyval.str) = (yyvsp[0].str);}
-#line 1427 "sent.c"
+#line 1434 "sent.c"
     break;
 
   case 19: /* type: STR  */
-#line 236 "sent.y"
+#line 243 "sent.y"
        {(yyval.str) = (yyvsp[0].str);}
-#line 1433 "sent.c"
+#line 1440 "sent.c"
     break;
 
   case 20: /* type: BOOL  */
-#line 237 "sent.y"
+#line 244 "sent.y"
        {(yyval.str) = (yyvsp[0].str);}
-#line 1439 "sent.c"
-    break;
-
-  case 21: /* functionCall: WORD '(' value ')' ';'  */
-#line 241 "sent.y"
-                         { struct func_call_type* f = createFuncCall((yyvsp[-4].str), (yyvsp[-2].valVec));
-                           (yyval.com) = createCommand(num, f);}
 #line 1446 "sent.c"
     break;
 
-  case 22: /* value: val  */
-#line 246 "sent.y"
-                {(yyval.valVec) = createValueVec();
-                 push_back_val((yyval.valVec), (yyvsp[0]._val));}
+  case 21: /* functionCall: WORD '(' value ')' ';'  */
+#line 248 "sent.y"
+                         { struct func_call_type* f = createFuncCall((yyvsp[-4].str), (yyvsp[-2].valVec));
+                           (yyval.com) = createCommand(num, f);}
 #line 1453 "sent.c"
     break;
 
-  case 23: /* value: val ',' value  */
-#line 248 "sent.y"
+  case 22: /* value: %empty  */
+#line 253 "sent.y"
+                {(yyval.valVec) = createValueVec();}
+#line 1459 "sent.c"
+    break;
+
+  case 23: /* value: val  */
+#line 254 "sent.y"
+                {(yyval.valVec) = createValueVec();
+                 push_back_val((yyval.valVec), (yyvsp[0]._val));}
+#line 1466 "sent.c"
+    break;
+
+  case 24: /* value: val ',' value  */
+#line 256 "sent.y"
                 {(yyval.valVec) = createValueVec();
                  push_back_val((yyval.valVec), (yyvsp[-2]._val));
                  for(int i = 0; i < (yyvsp[0].valVec)->size; ++i) {
                   push_back_val((yyval.valVec), (yyvsp[0].valVec)->values[i]);
                  }}
-#line 1463 "sent.c"
+#line 1476 "sent.c"
     break;
 
-  case 24: /* parametrs: par  */
-#line 256 "sent.y"
+  case 25: /* parametrs: par  */
+#line 264 "sent.y"
                     {(yyval.membVec) = createMemberVec();
                      push_back_mem((yyval.membVec), (yyvsp[0].memb));}
-#line 1470 "sent.c"
+#line 1483 "sent.c"
     break;
 
-  case 25: /* parametrs: par ',' parametrs  */
-#line 258 "sent.y"
+  case 26: /* parametrs: par ',' parametrs  */
+#line 266 "sent.y"
                     {(yyval.membVec) = createMemberVec();
                      push_back_mem((yyval.membVec), (yyvsp[-2].memb));
                      for(int i = 0; i < (yyvsp[0].membVec)->size; ++i) {
                       push_back_mem((yyval.membVec), (yyvsp[0].membVec)->members[i]);
                      }}
-#line 1480 "sent.c"
+#line 1493 "sent.c"
     break;
 
-  case 26: /* par: type WORD  */
-#line 266 "sent.y"
+  case 27: /* par: type WORD  */
+#line 274 "sent.y"
             {(yyval.memb) = createMember(createValue(getValueType((yyvsp[-1].str)), NULL), (yyvsp[0].str));}
-#line 1486 "sent.c"
+#line 1499 "sent.c"
     break;
 
-  case 27: /* par: %empty  */
-#line 267 "sent.y"
+  case 28: /* par: %empty  */
+#line 275 "sent.y"
            {(yyval.memb) = createMember(createValue(NULL_TYPE, NULL), NULL);}
-#line 1492 "sent.c"
+#line 1505 "sent.c"
     break;
 
-  case 28: /* val: STRING  */
-#line 271 "sent.y"
+  case 29: /* val: STRING  */
+#line 279 "sent.y"
          { char* str = calloc(64, sizeof(char));
            strcpy(str, (yyvsp[0].str));
            (yyval._val) = createValue(STRING_TYPE, str); free((yyvsp[0].str));}
-#line 1500 "sent.c"
+#line 1513 "sent.c"
     break;
 
-  case 29: /* val: NUM  */
-#line 274 "sent.y"
+  case 30: /* val: NUM  */
+#line 282 "sent.y"
          { int* a = malloc(sizeof(int));
            *a = (yyvsp[0].integer);
            (yyval._val) = createValue(INTEGER_TYPE, a);}
-#line 1508 "sent.c"
+#line 1521 "sent.c"
     break;
 
-  case 30: /* val: WORD  */
-#line 277 "sent.y"
+  case 31: /* val: WORD  */
+#line 285 "sent.y"
          { char* str = calloc(64, sizeof(char));
            strcpy(str, (yyvsp[0].str));
            (yyval._val) = createValue(OBJECT_TYPE, str); free((yyvsp[0].str));}
-#line 1516 "sent.c"
+#line 1529 "sent.c"
     break;
 
-  case 31: /* val: TRUE  */
-#line 280 "sent.y"
+  case 32: /* val: TRUE  */
+#line 288 "sent.y"
          { int* a = malloc(sizeof(int));
            *a = 1;
            (yyval._val) = createValue(BOOLEAN_TYPE, a);}
-#line 1524 "sent.c"
+#line 1537 "sent.c"
     break;
 
-  case 32: /* val: FALSE  */
-#line 283 "sent.y"
+  case 33: /* val: FALSE  */
+#line 291 "sent.y"
           { int* a = malloc(sizeof(int));
            *a = 0;
            (yyval._val) = createValue(BOOLEAN_TYPE, a);}
-#line 1532 "sent.c"
+#line 1545 "sent.c"
     break;
 
-  case 33: /* function: FN WORD '(' parametrs ')' '{' functionImplementation ret '}'  */
-#line 289 "sent.y"
+  case 34: /* function: FN WORD '(' parametrs ')' '{' functionImplementation ret '}'  */
+#line 297 "sent.y"
                                                                { struct func_impl_type* res = createFuncImpl((yyvsp[-7].str), (yyvsp[-5].membVec), (yyvsp[-2].ast_type), (yyvsp[-1]._val));
                                                                           (yyval.com) = createCommand(num, (void*)res);}
-#line 1539 "sent.c"
+#line 1552 "sent.c"
     break;
 
-  case 34: /* functionImplementation: funcImpl  */
-#line 294 "sent.y"
-                                { (yyval.ast_type) = createAst();
-                                    mergeAst((yyval.ast_type), (yyvsp[0].ast_type));}
-#line 1546 "sent.c"
-    break;
-
-  case 35: /* functionImplementation: funcImpl functionImplementation  */
-#line 296 "sent.y"
-                                  { (yyval.ast_type) = createAst();
-                                    mergeAst((yyval.ast_type), (yyvsp[-1].ast_type)); mergeAst((yyval.ast_type), (yyvsp[0].ast_type));}
-#line 1553 "sent.c"
-    break;
-
-  case 36: /* ret: RETURN returnVal ';'  */
-#line 301 "sent.y"
-                       {(yyval._val) = (yyvsp[-1]._val);}
-#line 1559 "sent.c"
-    break;
-
-  case 37: /* ret: %empty  */
+  case 35: /* functionImplementation: funcImpl  */
 #line 302 "sent.y"
-         {(yyval._val) = createValue(NULL_TYPE, NULL);}
-#line 1565 "sent.c"
+                                  { (yyval.ast_type) = (yyvsp[0].ast_type);}
+#line 1558 "sent.c"
     break;
 
-  case 38: /* returnVal: expr  */
-#line 306 "sent.y"
-       {(yyval._val) = (yyvsp[0]._val);}
-#line 1571 "sent.c"
+  case 36: /* functionImplementation: funcImpl functionImplementation  */
+#line 303 "sent.y"
+                                  { (yyval.ast_type) = mergeAst((yyvsp[-1].ast_type), (yyvsp[0].ast_type));}
+#line 1564 "sent.c"
     break;
 
-  case 39: /* returnVal: %empty  */
+  case 37: /* ret: RETURN returnVal ';'  */
 #line 307 "sent.y"
+                       {(yyval._val) = (yyvsp[-1]._val);}
+#line 1570 "sent.c"
+    break;
+
+  case 38: /* ret: %empty  */
+#line 308 "sent.y"
          {(yyval._val) = createValue(NULL_TYPE, NULL);}
-#line 1577 "sent.c"
+#line 1576 "sent.c"
     break;
 
-  case 40: /* funcImpl: functionCall  */
-#line 311 "sent.y"
-               {(yyval.ast_type) = createAst(); push_back_com((yyval.ast_type)->functionCalls, (yyvsp[0].com));}
-#line 1583 "sent.c"
-    break;
-
-  case 41: /* funcImpl: initialization  */
+  case 39: /* returnVal: expr  */
 #line 312 "sent.y"
-                 {(yyval.ast_type) = createAst(); push_back_com((yyval.ast_type)->initializations, (yyvsp[0].com));}
-#line 1589 "sent.c"
+       {(yyval._val) = (yyvsp[0]._val);}
+#line 1582 "sent.c"
     break;
 
-  case 42: /* funcImpl: declaration  */
+  case 40: /* returnVal: %empty  */
 #line 313 "sent.y"
-              {(yyval.ast_type) = createAst(); push_back_com((yyval.ast_type)->declarations, (yyvsp[0].com));}
-#line 1595 "sent.c"
+         {(yyval._val) = createValue(NULL_TYPE, NULL);}
+#line 1588 "sent.c"
     break;
 
-  case 43: /* brackets_functionImplementation: '{' functionImplementation '}'  */
+  case 41: /* funcImpl: functionCall  */
 #line 317 "sent.y"
-                                 {(yyval.ast_type) = (yyvsp[-1].ast_type);}
-#line 1601 "sent.c"
+               {(yyval.ast_type) = createAst(); push_back_com((yyval.ast_type)->functionCalls, (yyvsp[0].com));}
+#line 1594 "sent.c"
     break;
 
-  case 44: /* if_expression: IF expression brackets_functionImplementation else_expression  */
-#line 321 "sent.y"
+  case 42: /* funcImpl: initialization  */
+#line 318 "sent.y"
+                 {(yyval.ast_type) = createAst(); push_back_com((yyval.ast_type)->initializations, (yyvsp[0].com));}
+#line 1600 "sent.c"
+    break;
+
+  case 43: /* funcImpl: declaration  */
+#line 319 "sent.y"
+              {(yyval.ast_type) = createAst(); push_back_com((yyval.ast_type)->declarations, (yyvsp[0].com));}
+#line 1606 "sent.c"
+    break;
+
+  case 44: /* brackets_functionImplementation: '{' functionImplementation '}'  */
+#line 323 "sent.y"
+                                 {(yyval.ast_type) = (yyvsp[-1].ast_type);}
+#line 1612 "sent.c"
+    break;
+
+  case 45: /* if_expression: IF expression brackets_functionImplementation else_expression  */
+#line 327 "sent.y"
                                                                 {
                                                                   struct if_expr_type* res = createIfExpr((yyvsp[-2].if_cond), (yyvsp[-1].ast_type), (yyvsp[0].if_expr));
                                                                   (yyval.com) = createCommand(num, (void*)res);
                                                                   }
-#line 1610 "sent.c"
+#line 1621 "sent.c"
     break;
 
-  case 45: /* else_expression: ELSE brackets_functionImplementation  */
-#line 328 "sent.y"
+  case 46: /* else_expression: ELSE brackets_functionImplementation  */
+#line 334 "sent.y"
                                        {(yyval.if_expr) = createIfExpr(NULL, (yyvsp[0].ast_type), NULL);}
-#line 1616 "sent.c"
+#line 1627 "sent.c"
     break;
 
-  case 46: /* else_expression: %empty  */
-#line 329 "sent.y"
+  case 47: /* else_expression: %empty  */
+#line 335 "sent.y"
          {(yyval.if_expr) = NULL;}
-#line 1622 "sent.c"
+#line 1633 "sent.c"
     break;
 
-  case 47: /* expression: val cmp val  */
-#line 333 "sent.y"
-              {(yyval.if_cond) = createIfCond((yyvsp[-1].str), (yyvsp[-2]._val), (yyvsp[0]._val));}
-#line 1628 "sent.c"
-    break;
-
-  case 48: /* cmp: EQUALS  */
-#line 337 "sent.y"
-         {(yyval.str) = (yyvsp[0].str);}
-#line 1634 "sent.c"
-    break;
-
-  case 49: /* cmp: NOT_EQUALS  */
-#line 338 "sent.y"
-             {(yyval.str) = (yyvsp[0].str);}
-#line 1640 "sent.c"
-    break;
-
-  case 50: /* cmp: LESS  */
+  case 48: /* expression: val cmp val  */
 #line 339 "sent.y"
+              {(yyval.if_cond) = createIfCond((yyvsp[-1].str), (yyvsp[-2]._val), (yyvsp[0]._val));}
+#line 1639 "sent.c"
+    break;
+
+  case 49: /* cmp: EQUALS  */
+#line 343 "sent.y"
+         {(yyval.str) = (yyvsp[0].str);}
+#line 1645 "sent.c"
+    break;
+
+  case 50: /* cmp: NOT_EQUALS  */
+#line 344 "sent.y"
+             {(yyval.str) = (yyvsp[0].str);}
+#line 1651 "sent.c"
+    break;
+
+  case 51: /* cmp: LESS  */
+#line 345 "sent.y"
        {(yyval.str) = (yyvsp[0].str);}
-#line 1646 "sent.c"
+#line 1657 "sent.c"
     break;
 
-  case 51: /* cmp: MORE  */
-#line 340 "sent.y"
-       {(yyval.str) = (yyvsp[0].str);}
-#line 1652 "sent.c"
-    break;
-
-  case 52: /* cmp: EQ_LESS  */
-#line 341 "sent.y"
-          {(yyval.str) = (yyvsp[0].str);}
-#line 1658 "sent.c"
-    break;
-
-  case 53: /* cmp: EQ_MORE  */
-#line 342 "sent.y"
-          {(yyval.str) = (yyvsp[0].str);}
-#line 1664 "sent.c"
-    break;
-
-  case 54: /* while_expression: WHILE expression brackets_functionImplementation  */
+  case 52: /* cmp: MORE  */
 #line 346 "sent.y"
+       {(yyval.str) = (yyvsp[0].str);}
+#line 1663 "sent.c"
+    break;
+
+  case 53: /* cmp: EQ_LESS  */
+#line 347 "sent.y"
+          {(yyval.str) = (yyvsp[0].str);}
+#line 1669 "sent.c"
+    break;
+
+  case 54: /* cmp: EQ_MORE  */
+#line 348 "sent.y"
+          {(yyval.str) = (yyvsp[0].str);}
+#line 1675 "sent.c"
+    break;
+
+  case 55: /* while_expression: WHILE expression brackets_functionImplementation  */
+#line 352 "sent.y"
                                                    {  struct cycle_type* res = createCycle((yyvsp[-1].if_cond), (yyvsp[0].ast_type));
                                                       (yyval.com) = createCommand(num, (void*)res);}
-#line 1671 "sent.c"
+#line 1682 "sent.c"
     break;
 
-  case 55: /* for_expression: FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation  */
-#line 351 "sent.y"
+  case 56: /* for_expression: FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation  */
+#line 357 "sent.y"
                                                                  {int* a = calloc(16, sizeof(int));*a = (yyvsp[-3].integer);
                                                                   int* b = calloc(16, sizeof(int));*b = (yyvsp[-1].integer);
                                                                   push_back_com(ast->declarations, 
@@ -1679,47 +1690,47 @@ yyreduce:
                                                                   struct cycle_type* res = createCycle(createIfCond(strdup("<="),
                                                                   createValue(OBJECT_TYPE,(yyvsp[-5].str)),createValue(INTEGER_TYPE,b)), (yyvsp[0].ast_type));num++;
                                                                   (yyval.com) = createCommand(num, (void*)res);}
-#line 1683 "sent.c"
+#line 1694 "sent.c"
     break;
 
-  case 56: /* expr: second '+' expr  */
-#line 361 "sent.y"
-                  {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "+"); if ((yyval._val) == NULL) {YYABORT;}}
-#line 1689 "sent.c"
-    break;
-
-  case 57: /* expr: second '-' expr  */
-#line 362 "sent.y"
-                  {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "-"); if ((yyval._val) == NULL) {YYABORT;}}
-#line 1695 "sent.c"
-    break;
-
-  case 58: /* expr: second  */
-#line 363 "sent.y"
-                  {(yyval._val) = (yyvsp[0]._val);}
-#line 1701 "sent.c"
-    break;
-
-  case 59: /* second: val '*' second  */
+  case 57: /* expr: second '+' expr  */
 #line 367 "sent.y"
-                 {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "*"); if ((yyval._val) == NULL) {YYABORT;}}
-#line 1707 "sent.c"
+                  {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "+"); if ((yyval._val) == NULL) {YYABORT;}}
+#line 1700 "sent.c"
     break;
 
-  case 60: /* second: val '/' second  */
+  case 58: /* expr: second '-' expr  */
 #line 368 "sent.y"
-                 {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "/"); if ((yyval._val) == NULL) {YYABORT;}}
-#line 1713 "sent.c"
+                  {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "-"); if ((yyval._val) == NULL) {YYABORT;}}
+#line 1706 "sent.c"
     break;
 
-  case 61: /* second: val  */
+  case 59: /* expr: second  */
 #line 369 "sent.y"
+                  {(yyval._val) = (yyvsp[0]._val);}
+#line 1712 "sent.c"
+    break;
+
+  case 60: /* second: val '*' second  */
+#line 373 "sent.y"
+                 {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "*"); if ((yyval._val) == NULL) {YYABORT;}}
+#line 1718 "sent.c"
+    break;
+
+  case 61: /* second: val '/' second  */
+#line 374 "sent.y"
+                 {(yyval._val) = getOp((yyvsp[-2]._val), (yyvsp[0]._val), "/"); if ((yyval._val) == NULL) {YYABORT;}}
+#line 1724 "sent.c"
+    break;
+
+  case 62: /* second: val  */
+#line 375 "sent.y"
                  {(yyval._val) = (yyvsp[0]._val);}
-#line 1719 "sent.c"
+#line 1730 "sent.c"
     break;
 
 
-#line 1723 "sent.c"
+#line 1734 "sent.c"
 
       default: break;
     }
@@ -1912,7 +1923,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 372 "sent.y"
+#line 378 "sent.y"
 
 
 void yyerror(char *s) {

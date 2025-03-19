@@ -1,4 +1,13 @@
 let a : str = "Ксюша молодец";
-let b : u32 = 1000;
-println!("Правда ли, что {a}?\nДА!!!!!!\n");
+let b : u32 = 10000;
+println!("Правда ли, что {a}?\nДА, на {b}%!!!!!!\n");
 println!("Я люблю Ксюшу на {b}%\n");
+fn print(u32 x) {
+    println!("2"); println!("{x}\n");
+}
+fn megaPrint(u32 x, u32 y) {
+    print(x);
+    print(y);
+    println!("123\n");
+}
+megaPrint(2, 4);

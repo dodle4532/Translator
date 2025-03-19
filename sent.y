@@ -5,6 +5,7 @@
   #include <string.h>
   #include "lex.h"
   #include "ast.h"
+  #include "astHelper.h"
   int yylex (void);
   void yyerror (char *s);
   extern struct ast* ast;
@@ -212,7 +213,13 @@ command:
 ;
 
 declaration:
-  LET WORD ':' type init ';' { struct member_type* mem = createMember(createValue(getValueType($4), $5->data), $2);
+  LET WORD ':' type init ';' { if ($5->type != OBJECT_TYPE) {
+                                 if ($5->type != getValueType($4)) {
+                                  printf("Incorrect type for %s\n", $2);
+                                  YYABORT;
+                                 }                           
+                               }
+                               struct member_type* mem = createMember(createValue(getValueType($4), $5->data), $2);
                                $$ = createCommand(num, mem); free($4);}
 ;
 
@@ -243,7 +250,8 @@ functionCall:
 ;
 
 value:
-  val           {$$ = createValueVec();
+  %empty        {$$ = createValueVec();}
+| val           {$$ = createValueVec();
                  push_back_val($$, $1);}
 | val ',' value {$$ = createValueVec();
                  push_back_val($$, $1);
@@ -291,10 +299,8 @@ function:
 ;
 
 functionImplementation:
-  funcImpl                      { $$ = createAst();
-                                    mergeAst($$, $1);}
-| funcImpl functionImplementation { $$ = createAst();
-                                    mergeAst($$, $1); mergeAst($$, $2);}
+  funcImpl                        { $$ = $1;}
+| funcImpl functionImplementation { $$ = mergeAst($1, $2);}
 ;
 
 ret:

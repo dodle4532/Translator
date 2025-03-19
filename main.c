@@ -16,17 +16,24 @@ int main(int argc, char **argv) {
     ast = createAst();
     if (argc != 2) {
         printf("No file\n");
-        return 1;
+        char* str = strdup("1.txt");
+        FILE *inputFile = fopen(str, "r");
+        
+        yyin = inputFile;
+        res = yyparse();
+        fclose(inputFile);
     }
-    FILE *inputFile = fopen(argv[1], "r");
-    if (!inputFile) {
-        return 1;
+    else {
+        FILE *inputFile = fopen(argv[1], "r");
+        if (!inputFile) {
+            return 1;
+        }
+
+        yyin = inputFile;
+        res = yyparse();
+
+        fclose(inputFile);
     }
-
-    yyin = inputFile;
-    res = yyparse();
-
-    fclose(inputFile);
     if (res != 0) {
         printf("Error in %d\n", num);
         return 1;
@@ -51,7 +58,9 @@ int main(int argc, char **argv) {
     if (!transformAst(ast)) {
         return 1;
     }
-    doAllFunc(ast);
+    if (!doAllFunc(ast)) {
+        printf(" in %d line\n", num);
+    }
     // struct command_vec* sorted = sortAst(ast);
     freeAst(ast);
     return 0;

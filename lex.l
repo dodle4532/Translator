@@ -19,8 +19,8 @@
 "u64" {yylval.str = strdup(yytext); return U64;}
 "str" {yylval.str = strdup(yytext); return STR;}
 "bool" {yylval.str = strdup(yytext); return BOOL;}
-"true" {yylval.str = strdup(yytext); return TRUE;}
-"false" {yylval.str = strdup(yytext); return TRUE;}
+"true" {yylval.integer = 1; return TRUE;}
+"false" {yylval.integer = 0; return FALSE;}
 "fn"  {return FN;}
 "int"  {return INT;}
 "if"  {return IF;}

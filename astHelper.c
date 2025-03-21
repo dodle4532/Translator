@@ -172,7 +172,7 @@ bool doFunc(struct ast* ast, struct func_call_type* call) {
                 return false;
             }
             char* str = getValFromValueType(getValue(com));
-            strcat(res, str);
+            strcat(res, str); // ошибка когда bool
             tmp += prefix_length + t;
             size -= prefix_length + t;
             free(str);
@@ -197,21 +197,33 @@ bool doFunc(struct ast* ast, struct func_call_type* call) {
         printf("Implementation of funciton %s not found", name);
         return false;
     }
-    struct ast* mergedAst = mergeAst(ast, impl->impl);
+    if (!transformAst(impl->impl)) {
+        return false;
+    }
+    struct ast* mergedAst = fullMergeAst(ast, impl->impl);
     if (impl->parametrs->size != call->values->size) {
         printf("Incorrect number of arguments in function call %s, should be %d, but there is %d",
                 impl->name, impl->parametrs->size, call->values->size);
         return false;
     }
     for (int i = 0; i < impl->parametrs->size; ++i) {
-        if (call->values->values[i]->type != impl->parametrs->members[i]->value->type) {
+        struct value_type* val = call->values->values[i];
+        if (val->type == OBJECT_TYPE) {
+            struct command_type* com = findValue(mergedAst, val->data);
+            if (!com) {
+                printf("%s not found\n", val->data);
+                return false;
+            }
+            val = getValue(com);
+        }
+        if (val->type != impl->parametrs->members[i]->value->type) {
             printf("Incorrect type of parametr %s in function call %s, shoulde be %s, but there is %s",
                     impl->parametrs->members[i]->name, call->name, getStrFromValueType(impl->parametrs->members[i]->value->type),
-                    getStrFromValueType(call->values->values[i]->type));
+                    getStrFromValueType(val->type));
             return false;
         }
-        struct member_type* mem = createMember(call->values->values[i], impl->parametrs->members[i]->name);
-        ////////// printf("%s=%d\n",mem->name, *(int*)mem->value->data);
+        struct member_type* mem = createMember(val, impl->parametrs->members[i]->name);
+        // printf("%s=%d\n",mem->name, *(int*)mem->value->data);
         struct command_type* com = createCommand(0, (void*)mem);
         deleteValFromAst(mergedAst, impl->parametrs->members[i]->name);
         push_back_com(mergedAst->declarations, com);
@@ -265,7 +277,108 @@ bool doAllFunc(struct ast* ast) {
     return true;
 }
 
-struct ast* mergeAst(struct ast* first, struct ast* second) {
+struct value_type* getValueFromIfCond(struct ast* ast, struct value_type* val) { // Попробовать использовать в doFunc
+    if (val->type == OBJECT_TYPE) {
+        struct command_type* com = findValue(ast, (char*)val->data);
+        if (!com) {
+            printf("%s not found\n", val->data);
+            return NULL;
+        }
+        return getValue(com);
+    }
+    return val;
+}
+
+bool checkEquality(struct value_type* leftVal, struct value_type* rightVal) {
+    if (leftVal->type == INTEGER_TYPE) {
+        if (*(int*)leftVal->data == *(int*)rightVal->data) {
+            return true;
+        }
+        return false;
+    }
+    if (leftVal->type == FLOAT_TYPE) {
+        if (*(float*)leftVal->data == *(float*)rightVal->data) {
+            return true;
+        }
+        return false;
+    }
+    if (leftVal->type == BOOLEAN_TYPE) {
+        if (*(int*)leftVal->data == *(int*)rightVal->data) {
+            return true;
+        }
+        return false;
+    }
+    if (leftVal->type == STRING_TYPE) {
+        if (!strcmp((char*)leftVal->data, (char*)rightVal->data)) {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+int checkExpression(struct value_type* leftVal, struct value_type* rightVal, char* cmpChar) {
+    if (leftVal->type != rightVal->type) {
+        printf("Trying to check equality of %s and %s, which is not allowed\n", 
+                getStrFromValueType(leftVal->type), getStrFromValueType(rightVal->type));
+        return -1;
+    }
+    if (!strcmp(cmpChar, "==")) {
+        return checkEquality(leftVal, rightVal);
+    }
+    if (!strcmp(cmpChar, "!=")) {
+        return !checkEquality(leftVal, rightVal);
+    }
+    return -1;
+}
+
+bool doIf(struct ast* ast, struct if_expr_type* expr) {
+    struct if_cond_type* cond = expr->cond;
+    struct value_type* leftVal = getValueFromIfCond(ast, cond->leftVal);
+    if (!leftVal) {
+        return false;
+    }
+    struct value_type* rightVal = getValueFromIfCond(ast, cond->rightVal);
+    if (!rightVal) {
+        return false;
+    }
+    int res = checkExpression(leftVal, rightVal, cond->cmpChar);
+    struct ast* mergedAst;
+    switch (res)
+    {
+    case -1:
+        return false;
+    case 0:
+        mergedAst = smallMergeAst(ast, expr->_else->body);
+        doAst(mergedAst);
+        return false;
+    case 1:
+        mergedAst = smallMergeAst(ast, expr->body);
+        doAst(mergedAst);
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool doAst(struct ast* ast) { // void
+    if (!transformAst(ast)) {
+        return 1;
+    }
+    if (!doAllFunc(ast)) {
+        printf(" in line\n");
+        return 1;
+    }
+    for (int i = 0; i < ast->if_expressions->size; ++i) {
+        struct if_expr_type* expr = (struct if_expr_type*)ast->if_expressions->commands[i]->command;
+        if (!doIf(ast, expr)) {
+            return 1;
+        }
+    }
+    return true;
+}
+
+struct ast* fullMergeAst(struct ast* first, struct ast* second) {
     struct ast* ast = createAst();
     for (int i = 0; i < first->declarations->size; ++i) {
         push_back_com(ast->declarations, first->declarations->commands[i]);
@@ -312,7 +425,48 @@ struct ast* mergeAst(struct ast* first, struct ast* second) {
         push_back_com(ast->cycles, second->cycles->commands[i]);
     }
 
+    return ast;
+}
+
+struct ast* smallMergeAst(struct ast* first, struct ast* second) {
+    struct ast* ast = createAst();
+    for (int i = 0; i < first->declarations->size; ++i) {
+        push_back_com(ast->declarations, first->declarations->commands[i]);
+    }
     
+    for (int i = 0; i < first->initializations->size; ++i) {
+        push_back_com(ast->initializations, first->initializations->commands[i]);
+    }
+    
+    // for (int i = 0; i < first->functionCalls->size; ++i) {
+    //     push_back_com(ast->functionCalls, first->functionCalls->commands[i]);
+    // }
+
+    for (int i = 0; i < first->functions->size; ++i) {
+        push_back_com(ast->functions, first->functions->commands[i]);
+    }
+        
+    
+    for (int i = 0; i < second->declarations->size; ++i) {
+        push_back_com(ast->declarations, second->declarations->commands[i]);
+    }
+
+    for (int i = 0; i < second->initializations->size; ++i) {
+        push_back_com(ast->initializations, second->initializations->commands[i]);
+    }
+    
+    for (int i = 0; i < second->functionCalls->size; ++i) {
+        push_back_com(ast->functionCalls, second->functionCalls->commands[i]);
+    }
+    
+    for (int i = 0; i < second->if_expressions->size; ++i) {
+        push_back_com(ast->if_expressions, second->if_expressions->commands[i]);
+    }
+    
+    for (int i = 0; i < second->cycles->size; ++i) {
+        push_back_com(ast->cycles, second->cycles->commands[i]);
+    }
+
     return ast;
 }
 

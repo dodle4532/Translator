@@ -55,12 +55,7 @@ int main(int argc, char **argv) {
     // struct cycle_type* f6 = (struct cycle_type*)ast->cycles->commands[0]->command;
     // struct member_type* f7 = (struct member_type*)f6->body->initializations->commands[0]->command;
     // printf("%s %s %d {%s = %d}\n", f6->expr->leftVal->data, f6->expr->cmpChar, *(int*)f6->expr->rightVal->data, f7->name, *(int*)f7->value->data);
-    if (!transformAst(ast)) {
-        return 1;
-    }
-    if (!doAllFunc(ast)) {
-        printf(" in %d line\n", num);
-    }
+    doAst(ast);
     // struct command_vec* sorted = sortAst(ast);
     freeAst(ast);
     return 0;

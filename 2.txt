@@ -1,15 +1,29 @@
 let a : str = "Ксюша молодец";
-println("Правда ли, что {a}? - ДА!!!!!!");
-print(2, 3, 4);
-print("привет");
+let y : u32 = 5;
+println!("Правда ли, что {a}? - ДА!!!!!!\n");
 fn print(u32 x) {
-    print("2"); return;
+    println!("2\n"); return;
 }
-if x == 2 {
-    print(x);
+fn println!Str(str x) {
+    print("{x}\n"); return;
+}
+if y == 5 {
+    print(y);
 }
 while i == 2 {
     print(2); i = 3;
 }
 for i in 0..5 {i = 5;}
 let b : bool = false;
+let z : str = "123"+"4";
+if z == "1234" {
+    if z == "1" {
+        println!("ok\n");
+    }
+    else {
+        printStr(z);
+    }
+}
+else {
+    println!("no\n");
+}

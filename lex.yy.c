@@ -831,12 +831,12 @@ YY_RULE_SETUP
 case 10:
 YY_RULE_SETUP
 #line 22 "lex.l"
-{yylval.str = strdup(yytext); return TRUE;}
+{yylval.integer = 1; return TRUE;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 23 "lex.l"
-{yylval.str = strdup(yytext); return TRUE;}
+{yylval.integer = 0; return FALSE;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP

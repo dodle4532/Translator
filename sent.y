@@ -163,8 +163,8 @@
 %token <str> F32
 %token <str> STR
 %token <str> BOOL
-%token TRUE
-%token FALSE
+%token <integer> TRUE
+%token <integer> FALSE
 %token FN
 %token INT
 %token IF
@@ -286,10 +286,10 @@ val:
            strcpy(str, $1);
            $$ = createValue(OBJECT_TYPE, str); free($1);}
 | TRUE   { int* a = malloc(sizeof(int));
-           *a = 1;
+           *a = $1;
            $$ = createValue(BOOLEAN_TYPE, a);}
 | FALSE   { int* a = malloc(sizeof(int));
-           *a = 0;
+           *a = $1;
            $$ = createValue(BOOLEAN_TYPE, a);}
 ;
 
@@ -300,7 +300,7 @@ function:
 
 functionImplementation:
   funcImpl                        { $$ = $1;}
-| funcImpl functionImplementation { $$ = mergeAst($1, $2);}
+| funcImpl functionImplementation { $$ = fullMergeAst($1, $2);}
 ;
 
 ret:
@@ -317,6 +317,8 @@ funcImpl:
   functionCall {$$ = createAst(); push_back_com($$->functionCalls, $1);}
 | initialization {$$ = createAst(); push_back_com($$->initializations, $1);}
 | declaration {$$ = createAst(); push_back_com($$->declarations, $1);}
+| if_expression {$$ = createAst(); push_back_com($$->if_expressions, $1);}
+| while_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
 ;
 
 brackets_functionImplementation:

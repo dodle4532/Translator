@@ -38,10 +38,11 @@ struct member_type* createMember(struct value_type* val, char* name) {
     return mem;
 }
 
-struct command_type* createCommand(int num, void* command) {
+struct command_type* createCommand(int num, enum COMMAND_TYPE type, void* command) {
     struct command_type* com = calloc(1, sizeof(struct command_type));
-    com->num = num;
     com->command = command;
+    com->type = type;
+    com->num = num;
     return com;
 }
 

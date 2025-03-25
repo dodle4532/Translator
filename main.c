@@ -9,14 +9,13 @@ extern int yyparse();
 
 
 struct ast* ast;
-extern int num;
 
 int main(int argc, char **argv) {
     int res;
     ast = createAst();
     if (argc != 2) {
         printf("No file\n");
-        char* str = strdup("1.txt");
+        char* str = strdup("2.txt");
         FILE *inputFile = fopen(str, "r");
         
         yyin = inputFile;
@@ -35,7 +34,7 @@ int main(int argc, char **argv) {
         fclose(inputFile);
     }
     if (res != 0) {
-        printf("Error in %d\n", num);
+        printf("Error in %d\n", 0);
         return 1;
     } 
     // struct member_type* mem = (struct member_type*)ast->declarations->commands[1]->command;
@@ -55,7 +54,18 @@ int main(int argc, char **argv) {
     // struct cycle_type* f6 = (struct cycle_type*)ast->cycles->commands[0]->command;
     // struct member_type* f7 = (struct member_type*)f6->body->initializations->commands[0]->command;
     // printf("%s %s %d {%s = %d}\n", f6->expr->leftVal->data, f6->expr->cmpChar, *(int*)f6->expr->rightVal->data, f7->name, *(int*)f7->value->data);
-    doAst(ast);
+
+    // for (int i = 0; i < ast->declarations->size; ++i) {
+    //     struct member_type* mem = ast->declarations->commands[i]->command;
+    //     printf("%s\n", mem->name);
+    // }
+    if (!doAllAst(ast)) {
+        printf("\n");
+    }
+    // for (int i = 0; i < ast->declarations->size; ++i) {
+    //     struct member_type* mem = ast->declarations->commands[i]->command;
+    //     printf("%s\n", mem->name);
+    // }
     // struct command_vec* sorted = sortAst(ast);
     freeAst(ast);
     return 0;

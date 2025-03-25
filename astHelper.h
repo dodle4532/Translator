@@ -3,15 +3,16 @@ struct command_type* findValue(struct ast* ast, char* name);
 struct value_type* getValue(struct command_type* com);
 char* getValFromValueType(struct value_type* val);
 bool transformAst(struct ast* ast);
-bool doFunc(struct ast* ast, struct func_call_type* call);
-bool doIf(struct ast* ast, struct if_expr_type* expr);
+bool doFunc(struct ast* ast, struct command_type* com);
+bool doIf(struct ast* ast, struct command_type* com);
 int checkExpression(struct value_type* leftVal, struct value_type* rightVal, char* cmpChar);
 bool checkEquality(struct value_type* leftVal, struct value_type* rightVal);
-bool doAllFunc(struct ast* ast);
-struct ast* fullMergeAst(struct ast* first, struct ast* second);
-struct ast* smallMergeAst(struct ast* first, struct ast* second);
+struct ast* mergeAst(struct ast* first, struct ast* second);
+struct ast* createAstToDo(struct ast* source, struct ast* toDo);
 bool doAst(struct ast* ast);
-
+bool doAllAst(struct ast* ast);
+int getMaxNum(struct ast* ast);
+void changeNum(struct ast* ast, struct command_type* com);
 
 void freeAst(struct ast* ast);
 void free_value_vec(struct value_vec* vec);

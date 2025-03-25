@@ -12,6 +12,16 @@ enum VALUE_TYPE
   NULL_TYPE
 };
 
+enum COMMAND_TYPE
+{
+    VALUE_COM_TYPE,
+    MEMBER_COM_TYPE,
+    IF_COM_TYPE,
+    CYCLE_COM_TYPE,
+    FUNC_CALL_TYPE,
+    FUNC_IMPL_TYPE
+};
+
 struct value_type
 {
 	enum VALUE_TYPE type;
@@ -67,7 +77,8 @@ struct cycle_type {
 };
 
 struct command_type {
-	int num;
+	enum COMMAND_TYPE type;
+    int num;
 	void* command;
 };
 
@@ -89,7 +100,7 @@ struct ast {
 const char* getStrFromValueType(enum VALUE_TYPE type);
 struct value_type* createValue(enum VALUE_TYPE type, void* data); 
 struct member_type* createMember(struct value_type* val, char* name);
-struct command_type* createCommand(int num, void* command);
+struct command_type* createCommand(int num, enum COMMAND_TYPE type, void* command);
 struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* impl, struct value_type* returnValue);
 struct if_expr_type* createIfExpr(struct if_cond_type* cond, struct ast* body, struct if_expr_type* _else);
 struct if_cond_type* createIfCond(char* cmpChar, struct value_type* leftVal, struct value_type* rightVal);

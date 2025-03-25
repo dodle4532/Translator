@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+struct command_vec* helpCommandVec;
+
 void quickSort(struct command_type** numbers, int left, int right)
 {
     struct command_type* pivot; // разрешающий элемент
@@ -64,6 +66,12 @@ struct command_vec* sortAst(struct ast* ast) {
 }
 
 struct command_type* findValue(struct ast* ast, char* name) {
+    for (int i = 0; i < helpCommandVec->size; ++i) {
+        struct member_type* mem = helpCommandVec->commands[i]->command;
+        if (!strcmp(name, mem->name)) {
+            return helpCommandVec->commands[i];
+        }
+    }
     for (int i = 0; i < ast->declarations->size; ++i) {
         struct member_type* mem = ast->declarations->commands[i]->command;
         if (!strcmp(name, mem->name)) {
@@ -125,17 +133,27 @@ char* getValFromValueType(struct value_type* val) {
 }
 
 void deleteValFromAst(struct ast* ast, char* name) {
+    for (int i = 0; i < helpCommandVec->size; ++i) {
+        struct member_type* mem = helpCommandVec->commands[i]->command;
+        if (!strcmp(name, mem->name) && helpCommandVec->commands[i]->num == 0) {
+            // free(mem->name);
+            mem->name = calloc(16, sizeof(char));
+            return;
+        }
+    }
     for (int i = 0; i < ast->declarations->size; ++i) {
         struct member_type* mem = ast->declarations->commands[i]->command;
-        if (!strcmp(name, mem->name)) {
+        if (!strcmp(name, mem->name) && ast->declarations->commands[i]->num == 0) {
             free(mem->name);
             mem->name = calloc(16, sizeof(char));
+            return;
         }
     }
     return;
 }
 
-bool doFunc(struct ast* ast, struct func_call_type* call) {
+bool doFunc(struct ast* ast, struct command_type* command) {
+    struct func_call_type* call = (struct func_call_type*)command->command;
     char* name = call->name;
     if (!strcmp(name, "println!")) {
         char* tmp = calloc(256, sizeof(char));
@@ -200,9 +218,9 @@ bool doFunc(struct ast* ast, struct func_call_type* call) {
     if (!transformAst(impl->impl)) {
         return false;
     }
-    struct ast* mergedAst = fullMergeAst(ast, impl->impl);
+    struct ast* mergedAst = createAstToDo(ast, impl->impl);
     if (impl->parametrs->size != call->values->size) {
-        printf("Incorrect number of arguments in function call %s, should be %d, but there is %d",
+        printf("Incorrect number of arguments in function call %s, should be %d, but there is %d\n",
                 impl->name, impl->parametrs->size, call->values->size);
         return false;
     }
@@ -211,7 +229,7 @@ bool doFunc(struct ast* ast, struct func_call_type* call) {
         if (val->type == OBJECT_TYPE) {
             struct command_type* com = findValue(mergedAst, val->data);
             if (!com) {
-                printf("%s not found\n", val->data);
+                printf("%s not found", val->data);
                 return false;
             }
             val = getValue(com);
@@ -222,11 +240,20 @@ bool doFunc(struct ast* ast, struct func_call_type* call) {
                     getStrFromValueType(val->type));
             return false;
         }
+        // for (int i = 0; i < ast->declarations->size; ++i) {
+        //     struct member_type* mem = ast->declarations->commands[i]->command;
+        //     printf("%s\n", mem->name);
+        // }
         struct member_type* mem = createMember(val, impl->parametrs->members[i]->name);
         // printf("%s=%d\n",mem->name, *(int*)mem->value->data);
-        struct command_type* com = createCommand(0, (void*)mem);
-        deleteValFromAst(mergedAst, impl->parametrs->members[i]->name);
-        push_back_com(mergedAst->declarations, com);
+        struct command_type* com = createCommand(0, MEMBER_COM_TYPE, (void*)mem);
+        // deleteValFromAst(mergedAst, impl->parametrs->members[i]->name);
+        push_back_com(helpCommandVec, com);
+        // for (int i = 0; i < ast->declarations->size; ++i) {
+        //     struct member_type* mem = ast->declarations->commands[i]->command;
+        //     printf("%s\n", mem->name);
+        // }
+        // changeNum(mergedAst, com);
     }
     for (int i = 0; i < impl->impl->functionCalls->size; ++i) {
         struct value_vec* newParametrs = createValueVec();
@@ -257,22 +284,14 @@ bool doFunc(struct ast* ast, struct func_call_type* call) {
         }
         struct value_vec* tmp = c->values;
         c->values = newParametrs;
-        if (!doFunc(mergedAst, c)) {
+        if (!doFunc(mergedAst, impl->impl->functionCalls->commands[i])) {
             return false;
+        }
+        for (int i = 0; i < impl->parametrs->size; ++i) {
+            deleteValFromAst(mergedAst, impl->parametrs->members[i]->name);
         }
         c->values = tmp;
         // free_value_vec(newParametrs);
-    }
-    return true;
-}
-
-bool doAllFunc(struct ast* ast) {
-    for (int i = 0; i < ast->functionCalls->size; ++i) {
-        struct func_call_type* f = ast->functionCalls->commands[i]->command;
-        bool res = doFunc(ast, f);
-        if (!res) {
-            return false;
-        }
     }
     return true;
 }
@@ -281,7 +300,7 @@ struct value_type* getValueFromIfCond(struct ast* ast, struct value_type* val) {
     if (val->type == OBJECT_TYPE) {
         struct command_type* com = findValue(ast, (char*)val->data);
         if (!com) {
-            printf("%s not found\n", val->data);
+            printf("%s not found", val->data);
             return NULL;
         }
         return getValue(com);
@@ -332,14 +351,17 @@ int checkExpression(struct value_type* leftVal, struct value_type* rightVal, cha
     return -1;
 }
 
-bool doIf(struct ast* ast, struct if_expr_type* expr) {
+bool doIf(struct ast* ast, struct command_type* command) {
+    struct if_expr_type* expr = (struct if_expr_type*)command->command;
     struct if_cond_type* cond = expr->cond;
     struct value_type* leftVal = getValueFromIfCond(ast, cond->leftVal);
     if (!leftVal) {
+        printf(": Left value in if cond not found");
         return false;
     }
     struct value_type* rightVal = getValueFromIfCond(ast, cond->rightVal);
     if (!rightVal) {
+        printf(": Right value in if cond not found");
         return false;
     }
     int res = checkExpression(leftVal, rightVal, cond->cmpChar);
@@ -349,15 +371,34 @@ bool doIf(struct ast* ast, struct if_expr_type* expr) {
     case -1:
         return false;
     case 0:
-        mergedAst = smallMergeAst(ast, expr->_else->body);
-        doAst(mergedAst);
-        return false;
-    case 1:
-        mergedAst = smallMergeAst(ast, expr->body);
+        mergedAst = createAstToDo(ast, expr->_else->body);
         doAst(mergedAst);
         return true;
+    case 1:
+        mergedAst = createAstToDo(ast, expr->body);
+        return doAst(mergedAst);
     default:
         return false;
+    }
+}
+
+bool doCommand(struct ast* ast, struct command_type* com) {
+    if (!com) {
+        printf("Command not found\n");
+        return false;
+    }
+    switch (com->type)
+    {
+    case IF_COM_TYPE:
+        return doIf(ast, com);
+    case FUNC_CALL_TYPE:
+        return doFunc(ast, com);
+    // case MEMBER_COM_TYPE:
+    //     struct member_type* mem = com->command;
+    //     printf("%s", mem->name);
+    //     break;
+    default:
+        return true;
     }
 }
 
@@ -365,20 +406,107 @@ bool doAst(struct ast* ast) { // void
     if (!transformAst(ast)) {
         return 1;
     }
-    if (!doAllFunc(ast)) {
-        printf(" in line\n");
-        return 1;
-    }
-    for (int i = 0; i < ast->if_expressions->size; ++i) {
-        struct if_expr_type* expr = (struct if_expr_type*)ast->if_expressions->commands[i]->command;
-        if (!doIf(ast, expr)) {
-            return 1;
+    struct command_vec* vec = sortAst(ast);
+    for (int i = 0; i < vec->size; ++i) {
+        if(!doCommand(ast, vec->commands[i])) {
+            return false;
         }
     }
     return true;
 }
 
-struct ast* fullMergeAst(struct ast* first, struct ast* second) {
+bool doAllAst(struct ast* ast) {
+    helpCommandVec = createCommandVec();
+    int res = doAst(ast);
+    free(helpCommandVec);
+    return res;
+}
+
+int getMaxNum(struct ast* ast) {
+    int num = 0;
+    for (int i = 0; i < ast->cycles->size; ++i) {
+        if (ast->cycles->commands[i]->num > num) {
+            num = ast->cycles->commands[i]->num;
+        }
+        struct cycle_type* cycle = (struct cycle_type*) ast->functions->commands[i]->command;
+        int implMax = getMaxNum(cycle->body);
+        if (implMax > num) {
+            num = implMax;
+        }
+    }
+    for (int i = 0; i < ast->initializations->size; ++i) {
+        if (ast->initializations->commands[i]->num > num) {
+            num = ast->initializations->commands[i]->num;
+        }
+    }
+    for (int i = 0; i < ast->declarations->size; ++i) {
+        if (ast->declarations->commands[i]->num > num) {
+            num = ast->declarations->commands[i]->num;
+        }
+    }
+    for (int i = 0; i < ast->functionCalls->size; ++i) {
+        if (ast->functionCalls->commands[i]->num > num) {
+            num = ast->functionCalls->commands[i]->num;
+        }
+    }
+    for (int i = 0; i < ast->functions->size; ++i) {
+        if (ast->functions->commands[i]->num > num) {
+            num = ast->functions->commands[i]->num;
+        }
+        struct func_impl_type* impl = (struct func_impl_type*) ast->functions->commands[i]->command;
+        int implMax = getMaxNum(impl->impl);
+        if (implMax > num) {
+            num = implMax;
+        }
+    }
+    for (int i = 0; i < ast->if_expressions->size; ++i) {
+        if (ast->if_expressions->commands[i]->num > num) {
+            num = ast->if_expressions->commands[i]->num;
+        }
+        struct if_expr_type* expr = (struct if_expr_type*) ast->functions->commands[i]->command;
+        int implMax = getMaxNum(expr->body);
+        if (implMax > num) {
+            num = implMax;
+        }
+    }
+    return num;
+}
+
+void changeNum(struct ast* ast, struct command_type* com) {
+    for (int i = 0; i < ast->cycles->size; ++i) {
+        if (ast->cycles->commands[i] == com) {
+            com->num = getMaxNum(ast) + 1;
+        }
+    }
+    for (int i = 0; i < ast->initializations->size; ++i) {
+        if (ast->initializations->commands[i] == com) {
+            com->num = getMaxNum(ast) + 1;
+        }
+    }
+    for (int i = 0; i < ast->declarations->size; ++i) {
+        if (ast->declarations->commands[i] == com) {
+            com->num = getMaxNum(ast) + 1;
+        }
+    }
+    for (int i = 0; i < ast->functionCalls->size; ++i) {
+        if (ast->functionCalls->commands[i] == com) {
+            com->num = getMaxNum(ast) + 1;
+        }
+    }
+    for (int i = 0; i < ast->functions->size; ++i) {
+        if (ast->functions->commands[i] == com) {
+            com->num = getMaxNum(ast) + 1;
+        }
+    }
+    for (int i = 0; i < ast->if_expressions->size; ++i) {
+        if (ast->if_expressions->commands[i] == com) {
+            com->num = getMaxNum(ast) + 1;
+        }
+    }
+    return;
+}
+
+struct ast* mergeAst(struct ast* first, struct ast* second) {
     struct ast* ast = createAst();
     for (int i = 0; i < first->declarations->size; ++i) {
         push_back_com(ast->declarations, first->declarations->commands[i]);
@@ -404,11 +532,11 @@ struct ast* fullMergeAst(struct ast* first, struct ast* second) {
         push_back_com(ast->cycles, first->functionCalls->commands[i]);
     }
     
-    
+
     for (int i = 0; i < second->declarations->size; ++i) {
         push_back_com(ast->declarations, second->declarations->commands[i]);
     }
-
+    
     for (int i = 0; i < second->initializations->size; ++i) {
         push_back_com(ast->initializations, second->initializations->commands[i]);
     }
@@ -421,52 +549,43 @@ struct ast* fullMergeAst(struct ast* first, struct ast* second) {
         push_back_com(ast->if_expressions, second->if_expressions->commands[i]);
     }
     
+    for (int i = 0; i < second->functions->size; ++i) {
+        push_back_com(ast->functions, second->functions->commands[i]);
+    }
+    
     for (int i = 0; i < second->cycles->size; ++i) {
-        push_back_com(ast->cycles, second->cycles->commands[i]);
+        push_back_com(ast->cycles, second->functionCalls->commands[i]);
     }
 
     return ast;
 }
 
-struct ast* smallMergeAst(struct ast* first, struct ast* second) {
+struct ast* createAstToDo(struct ast* source, struct ast* toDo) {
     struct ast* ast = createAst();
-    for (int i = 0; i < first->declarations->size; ++i) {
-        push_back_com(ast->declarations, first->declarations->commands[i]);
+    for (int i = 0; i < source->declarations->size; ++i) {
+        push_back_com(ast->declarations, source->declarations->commands[i]);
     }
     
-    for (int i = 0; i < first->initializations->size; ++i) {
-        push_back_com(ast->initializations, first->initializations->commands[i]);
+    for (int i = 0; i < source->initializations->size; ++i) {
+        push_back_com(ast->initializations, source->initializations->commands[i]);
     }
     
-    // for (int i = 0; i < first->functionCalls->size; ++i) {
-    //     push_back_com(ast->functionCalls, first->functionCalls->commands[i]);
-    // }
-
-    for (int i = 0; i < first->functions->size; ++i) {
-        push_back_com(ast->functions, first->functions->commands[i]);
+    for (int i = 0; i < source->functions->size; ++i) {
+        push_back_com(ast->functions, source->functions->commands[i]);
     }
-        
     
-    for (int i = 0; i < second->declarations->size; ++i) {
-        push_back_com(ast->declarations, second->declarations->commands[i]);
+    for (int i = 0; i < toDo->functionCalls->size; ++i) {
+        push_back_com(ast->functionCalls, toDo->functionCalls->commands[i]);
     }
 
-    for (int i = 0; i < second->initializations->size; ++i) {
-        push_back_com(ast->initializations, second->initializations->commands[i]);
-    }
-    
-    for (int i = 0; i < second->functionCalls->size; ++i) {
-        push_back_com(ast->functionCalls, second->functionCalls->commands[i]);
-    }
-    
-    for (int i = 0; i < second->if_expressions->size; ++i) {
-        push_back_com(ast->if_expressions, second->if_expressions->commands[i]);
-    }
-    
-    for (int i = 0; i < second->cycles->size; ++i) {
-        push_back_com(ast->cycles, second->cycles->commands[i]);
+    for (int i = 0; i < toDo->if_expressions->size; ++i) {
+        push_back_com(ast->if_expressions, toDo->if_expressions->commands[i]);
     }
 
+    for (int i = 0; i < toDo->cycles->size; ++i) {
+        push_back_com(ast->cycles, toDo->cycles->commands[i]);
+    }
+    
     return ast;
 }
 

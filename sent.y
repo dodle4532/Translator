@@ -220,7 +220,7 @@ declaration:
                                  }                           
                                }
                                struct member_type* mem = createMember(createValue(getValueType($4), $5->data), $2);
-                               $$ = createCommand(num, mem); free($4);}
+                               $$ = createCommand(num, MEMBER_COM_TYPE, mem); free($4);}
 ;
 
 init:
@@ -229,7 +229,7 @@ init:
 
 initialization:
   WORD assignment ';' { struct member_type* mem = createMember($2, $1);
-                        $$ = createCommand(num, mem);}
+                        $$ = createCommand(num, MEMBER_COM_TYPE, mem);}
 ;
 
 assignment:
@@ -246,7 +246,7 @@ type:
 
 functionCall:
   WORD '(' value ')' ';' { struct func_call_type* f = createFuncCall($1, $3);
-                           $$ = createCommand(num, f);}
+                           $$ = createCommand(num, FUNC_CALL_TYPE, f);}
 ;
 
 value:
@@ -262,7 +262,7 @@ value:
 
 parametrs:
   par               {$$ = createMemberVec();
-                     push_back_mem($$, $1);}
+                     if ($1->value->type != NULL_TYPE) push_back_mem($$, $1);}
 | par ',' parametrs {$$ = createMemberVec();
                      push_back_mem($$, $1);
                      for(int i = 0; i < $3->size; ++i) {
@@ -295,12 +295,12 @@ val:
 
 function:
   FN WORD '(' parametrs ')' '{' functionImplementation ret '}' { struct func_impl_type* res = createFuncImpl($2, $4, $7, $8);
-                                                                          $$ = createCommand(num, (void*)res);}
+                                                                          $$ = createCommand(num, FUNC_IMPL_TYPE, (void*)res);}
 ;
 
 functionImplementation:
   funcImpl                        { $$ = $1;}
-| funcImpl functionImplementation { $$ = fullMergeAst($1, $2);}
+| funcImpl functionImplementation { $$ = mergeAst($1, $2);}
 ;
 
 ret:
@@ -319,6 +319,7 @@ funcImpl:
 | declaration {$$ = createAst(); push_back_com($$->declarations, $1);}
 | if_expression {$$ = createAst(); push_back_com($$->if_expressions, $1);}
 | while_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
+| for_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
 ;
 
 brackets_functionImplementation:
@@ -328,7 +329,7 @@ brackets_functionImplementation:
 if_expression:
   IF expression brackets_functionImplementation else_expression {
                                                                   struct if_expr_type* res = createIfExpr($2, $3, $4);
-                                                                  $$ = createCommand(num, (void*)res);
+                                                                  $$ = createCommand(num, IF_COM_TYPE, (void*)res);
                                                                   }
 ;
 
@@ -352,17 +353,17 @@ cmp:
 
 while_expression:
   WHILE expression brackets_functionImplementation {  struct cycle_type* res = createCycle($2, $3);
-                                                      $$ = createCommand(num, (void*)res);}
+                                                      $$ = createCommand(num, CYCLE_COM_TYPE, (void*)res);num;}
 ;
 
 for_expression:
   FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation {int* a = calloc(16, sizeof(int));*a = $4;
                                                                   int* b = calloc(16, sizeof(int));*b = $6;
-                                                                  push_back_com(ast->declarations, 
-                                                                  createCommand(num, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),$2)));
+                                                                  push_back_com($7->declarations, 
+                                                                  createCommand(num, MEMBER_COM_TYPE, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),$2)));
                                                                   struct cycle_type* res = createCycle(createIfCond(strdup("<="),
-                                                                  createValue(OBJECT_TYPE,$2),createValue(INTEGER_TYPE,b)), $7);num++;
-                                                                  $$ = createCommand(num, (void*)res);}
+                                                                  createValue(OBJECT_TYPE,$2),createValue(INTEGER_TYPE,b)), $7);
+                                                                  $$ = createCommand(num, CYCLE_COM_TYPE, (void*)res);}
 ;
 
 expr:

@@ -2,9 +2,11 @@ fn print(u32 x) {
     println!("{x}\n"); return;
 }
 fn printStr(str x) {
-    println!("{x}\n"); return;
+    println!("{x}\n"); print(567); return;
 }
 
+
+fn main() {
     let a : str = "Ксюша молодец";
     let y : u32 = 5;
     println!("Правда ли, что {a}? - ДА!!!!!!\n");
@@ -16,7 +18,7 @@ fn printStr(str x) {
     }
     for i in 0..5 {i = 5;}
     let b : bool = false;
-    let x : str = "123"+"4";
+    let x : str = "1234";
     if x == "1234" {
         if b == true {
             println!("ok\n");
@@ -31,10 +33,10 @@ fn printStr(str x) {
     }
     if x != "1234" {
         println!("How?????\n");
+        printStr(x);
     }
     else {
         println!("else working nice\n");
         printStr(x);
     }
-
-main();
+}

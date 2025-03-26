@@ -1331,7 +1331,7 @@ yyreduce:
     {
   case 3: /* input: input command  */
 #line 202 "sent.y"
-                {num++;}
+                {}
 #line 1336 "sent.c"
     break;
 
@@ -1386,7 +1386,7 @@ yyreduce:
                                  }                           
                                }
                                struct member_type* mem = createMember(createValue(getValueType((yyvsp[-2].str)), (yyvsp[-1]._val)->data), (yyvsp[-4].str));
-                               (yyval.com) = createCommand(num, MEMBER_COM_TYPE, mem); free((yyvsp[-2].str));}
+                               (yyval.com) = createCommand(num++, MEMBER_COM_TYPE, mem); free((yyvsp[-2].str));}
 #line 1391 "sent.c"
     break;
 
@@ -1405,7 +1405,7 @@ yyreduce:
   case 14: /* initialization: WORD assignment ';'  */
 #line 231 "sent.y"
                       { struct member_type* mem = createMember((yyvsp[-1]._val), (yyvsp[-2].str));
-                        (yyval.com) = createCommand(num, MEMBER_COM_TYPE, mem);}
+                        (yyval.com) = createCommand(num++, MEMBER_COM_TYPE, mem);}
 #line 1410 "sent.c"
     break;
 
@@ -1448,7 +1448,7 @@ yyreduce:
   case 21: /* functionCall: WORD '(' value ')' ';'  */
 #line 248 "sent.y"
                          { struct func_call_type* f = createFuncCall((yyvsp[-4].str), (yyvsp[-2].valVec));
-                           (yyval.com) = createCommand(num, FUNC_CALL_TYPE, f);}
+                           (yyval.com) = createCommand(num++, FUNC_CALL_TYPE, f);}
 #line 1453 "sent.c"
     break;
 
@@ -1547,7 +1547,7 @@ yyreduce:
   case 34: /* function: FN WORD '(' parametrs ')' '{' functionImplementation ret '}'  */
 #line 297 "sent.y"
                                                                { struct func_impl_type* res = createFuncImpl((yyvsp[-7].str), (yyvsp[-5].membVec), (yyvsp[-2].ast_type), (yyvsp[-1]._val));
-                                                                          (yyval.com) = createCommand(num, FUNC_IMPL_TYPE, (void*)res);}
+                                                                          (yyval.com) = createCommand(num++, FUNC_IMPL_TYPE, (void*)res);}
 #line 1552 "sent.c"
     break;
 
@@ -1633,7 +1633,7 @@ yyreduce:
 #line 330 "sent.y"
                                                                 {
                                                                   struct if_expr_type* res = createIfExpr((yyvsp[-2].if_cond), (yyvsp[-1].ast_type), (yyvsp[0].if_expr));
-                                                                  (yyval.com) = createCommand(num, IF_COM_TYPE, (void*)res);
+                                                                  (yyval.com) = createCommand(num++, IF_COM_TYPE, (void*)res);
                                                                   }
 #line 1639 "sent.c"
     break;
@@ -1695,7 +1695,7 @@ yyreduce:
   case 58: /* while_expression: WHILE expression brackets_functionImplementation  */
 #line 355 "sent.y"
                                                    {  struct cycle_type* res = createCycle((yyvsp[-1].if_cond), (yyvsp[0].ast_type));
-                                                      (yyval.com) = createCommand(num, CYCLE_COM_TYPE, (void*)res);num;}
+                                                      (yyval.com) = createCommand(num++, CYCLE_COM_TYPE, (void*)res);num++;}
 #line 1700 "sent.c"
     break;
 
@@ -1704,10 +1704,10 @@ yyreduce:
                                                                  {int* a = calloc(16, sizeof(int));*a = (yyvsp[-3].integer);
                                                                   int* b = calloc(16, sizeof(int));*b = (yyvsp[-1].integer);
                                                                   push_back_com((yyvsp[0].ast_type)->declarations, 
-                                                                  createCommand(num, MEMBER_COM_TYPE, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),(yyvsp[-5].str))));
+                                                                  createCommand(num++, MEMBER_COM_TYPE, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),(yyvsp[-5].str))));
                                                                   struct cycle_type* res = createCycle(createIfCond(strdup("<="),
                                                                   createValue(OBJECT_TYPE,(yyvsp[-5].str)),createValue(INTEGER_TYPE,b)), (yyvsp[0].ast_type));
-                                                                  (yyval.com) = createCommand(num, CYCLE_COM_TYPE, (void*)res);}
+                                                                  (yyval.com) = createCommand(num++, CYCLE_COM_TYPE, (void*)res);}
 #line 1712 "sent.c"
     break;
 

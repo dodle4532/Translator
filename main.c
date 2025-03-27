@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     ast = createAst();
     if (argc != 2) {
         printf("No file\n");
-        char* str = strdup("2.txt");
+        char* str = strdup("1.txt");
         FILE *inputFile = fopen(str, "r");
         
         yyin = inputFile;

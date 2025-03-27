@@ -25,121 +25,6 @@
       }
       return NULL_TYPE;
   }
-  int getIntRes(int l, int r, const char* op) {
-    if (!strcmp(op, "+")) {
-      return l + r;
-    }
-    if (!strcmp(op, "-")) {
-      return l - r;
-    }
-    if (!strcmp(op, "*")) {
-      return l * r;
-    }
-    if (!strcmp(op, "/")) {
-      return l / r;
-    }
-  }
-  float getFloatRes(float l, float r, const char* op) {
-    if (!strcmp(op, "+")) {
-      return l + r;
-    }
-    if (!strcmp(op, "-")) {
-      return l - r;
-    }
-    if (!strcmp(op, "*")) {
-      return l * r;
-    }
-    if (!strcmp(op, "/")) {
-      return l / r;
-    }
-  }
-  struct value_type* getOp(struct value_type* left, struct value_type* right, const char* op) {
-    struct value_type* val = calloc(1, sizeof(struct value_type));
-    if (left->type == INTEGER_TYPE && right->type == INTEGER_TYPE) {
-      val->type = INTEGER_TYPE;
-      int* a = malloc(sizeof(int));
-      *a = getIntRes(*(int*)left->data, *(int*)right->data, op);
-      val->data = a;
-      if (left->data != NULL) {
-        free(left->data);
-      }
-      free(left);
-      if (right->data != NULL) {
-        free(right->data);
-      }
-      free(right);
-      return val;
-    }
-    if (left->type == FLOAT_TYPE && right->type == FLOAT_TYPE) {
-      val->type = FLOAT_TYPE;
-      float* a = malloc(sizeof(float));
-      *a = getFloatRes(*(float*)left->data, *(float*)right->data, op);
-      val->data = a;
-      if (left->data != NULL) {
-        free(left->data);
-      }
-      free(left);
-      if (right->data != NULL) {
-        free(right->data);
-      }
-      free(right);
-      return val;
-    }
-    if (strcmp(op, "+")) {
-      free(val);
-      return NULL;
-    }
-    if (left->type == BOOLEAN_TYPE || right->type == BOOLEAN_TYPE || left->type == NULL_TYPE || right->type == NULL_TYPE) {
-      free(val); return NULL;
-    }
-    if (left->type == OBJECT_TYPE || right->type == OBJECT_TYPE) {
-      char* l1;
-      char* l2;
-      if (left->type == INTEGER_TYPE) {
-        l1 = calloc(32,sizeof(char));
-        sprintf(l1, "%d", *(int*)left->data);
-        free(left->data);
-        left->data = NULL;
-      }
-      else {
-        l1 = (char*)left->data;
-      }
-      if (right->type == INTEGER_TYPE) {
-        l2 = calloc(32,sizeof(char));
-        sprintf(l2, "%d", *(int*)right->data);
-        free(right->data);
-        right->data = NULL;
-      }
-      else {
-        l2 = (char*)right->data;
-      }
-      val->type = OBJECT_TYPE;
-      strcat(l1, "+"); strcat(l1, l2);
-      val->data = l1;
-      free(l2);
-      return val;
-    }
-    if (left->type == STRING_TYPE && left->type == STRING_TYPE && op == "+") {
-        strcat((char*) left->data, (char*)right->data);
-        val->type = STRING_TYPE;
-        val->data = strdup((char*)left->data);
-        free(right->data);
-        free(right);
-        free(left->data);
-        free(left);
-        return val;
-    }
-    if (left->data != NULL) {
-      free(left->data);
-    }
-    free(left);
-    if (right->data != NULL) {
-      free(right->data);
-    }
-    free(right);
-    free(val);
-    return NULL;
-  }
 %}
 %union {
     char* str;
@@ -229,7 +114,7 @@ init:
 
 initialization:
   WORD assignment ';' { struct member_type* mem = createMember($2, $1);
-                        $$ = createCommand(num++, MEMBER_COM_TYPE, mem);}
+                        $$ = createCommand(num++, INIT_COM_TYPE, mem);}
 ;
 
 assignment:
@@ -367,14 +252,14 @@ for_expression:
 ;
 
 expr:
-  second '+' expr {$$ = getOp($1, $3, "+"); if ($$ == NULL) {YYABORT;}}
-| second '-' expr {$$ = getOp($1, $3, "-"); if ($$ == NULL) {YYABORT;}}
+  second '+' expr {$$ = getOp($1, $3, '+'); if ($$ == NULL) {YYABORT;}}
+| second '-' expr {$$ = getOp($1, $3, '-'); if ($$ == NULL) {YYABORT;}}
 | second          {$$ = $1;}
 ;
 
 second:
-  val '*' second {$$ = getOp($1, $3, "*"); if ($$ == NULL) {YYABORT;}}
-| val '/' second {$$ = getOp($1, $3, "/"); if ($$ == NULL) {YYABORT;}}
+  val '*' second {$$ = getOp($1, $3, '*'); if ($$ == NULL) {;YYABORT;}}
+| val '/' second {$$ = getOp($1, $3, '/'); if ($$ == NULL) {YYABORT;}}
 | val            {$$ = $1;}
 ;
 

@@ -9,8 +9,9 @@ fn printStr(str x) {
 fn main() {
     let a : str = "Ксюша молодец";
     let y : u32 = 5;
+    let z : u32 = 1;
     println!("Правда ли, что {a}? - ДА!!!!!!\n");
-    if y == 5 {
+    if y >= z {
         print(y);
     }
     while i == 2 {

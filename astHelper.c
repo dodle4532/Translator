@@ -359,24 +359,38 @@ bool fillData(struct ast* ast, struct value_type* res, char* leftVal, char* righ
         }
         struct member_type* rightMem = (struct member_type*)rightCom->command;
         right = rightMem->value;
+        // printData(right);
     }
     if (right->type != res->type) {
         printf("Trying to sign %s to %s", getStrFromValueType(right->type), getStrFromValueType(res->type)); 
         return false;  
     }
-    res->data = getOp(left, right, op)->data;
+    // printData(res);
+    res->data = getOp(res, right, op)->data;
+    // left->data = res->data;
+    // printData(res);
     return true;
 }
 
 bool transformAst(struct ast* ast) {
     for (int i = 0; i < ast->declarations->size; ++i) {
+        struct member_type* mem1 = ast->declarations->commands[i]->command;
         for (int j = i + 1; j < ast->declarations->size; ++j) {
-            struct member_type* mem1 = ast->declarations->commands[i]->command;
             struct member_type* mem2 = ast->declarations->commands[j]->command;
             if (!strcmp(mem1->name, mem2->name)) {
                 printf("Redeclaration of %s in %d line\n", mem1->name, ast->declarations->commands[j]->num);
                 return false;
             }
+        }
+        if (mem1->value->type == OBJECT_TYPE) {
+            // printData(mem1->value);
+            struct value_type* val = getDataFromObject(ast, mem1);
+            if (val == NULL) {
+                return false;
+            }
+            free(mem1->value);
+            mem1->value = val;
+            // printData(mem1->value);
         }
     }
     // free_command_vec(ast->initializations, 2);
@@ -478,9 +492,9 @@ bool doFunc(struct ast* ast, struct command_type* command) {
         printf("Implementation of funciton %s not found", name);
         return false;
     }
-    if (!transformAst(impl->impl)) {
-        return false;
-    }
+    // if (!transformAst(impl->impl)) {
+    //     return false;
+    // }
     struct ast* mergedAst = createAstToFunc(ast, impl->impl);
     if (impl->parametrs->size != call->values->size) {
         printf("Incorrect number of arguments in function call %s, should be %d, but there is %d\n",
@@ -750,6 +764,40 @@ void printData(struct value_type* val) {
     return;
 }
 
+struct value_type* getDataFromObject(struct ast* ast, struct member_type* mem) {
+    char* data = mem->value->data;
+    int index = 0;
+    struct value_type* res = createValue(NULL_TYPE, NULL);
+    char* leftVal = calloc(64, sizeof(char));
+    char* rightVal = calloc(64, sizeof(char));
+    char op = 0;
+    bool isLeft = true;
+    while (index < strlen(data)) {
+        if (data[index] == '+' || data[index] == '-' || data[index] == '*' || data[index] == '*') {
+            op = data[index];
+            isLeft = false;
+            if (!fillData(ast, res, leftVal, rightVal, op)) {
+                return NULL;
+            }
+            index++;
+            free(rightVal);
+            rightVal = calloc(64, sizeof(char));
+            continue;
+        }
+        if (isLeft) {
+            leftVal[strlen(leftVal)] = data[index];
+        }
+        else {
+            rightVal[strlen(rightVal)] = data[index];
+        }
+        index++;
+    }
+    if (!fillData(ast, res, leftVal, rightVal, op)) {
+        return NULL;
+    }
+    return res;
+}
+
 bool doInit(struct ast* ast, struct command_type* command) { // Добавить поддержку i+i+1 или через a = i+1 и i = i+a;
     int num = command->num;
     struct member_type* mem = command->command;
@@ -761,35 +809,8 @@ bool doInit(struct ast* ast, struct command_type* command) { // Добавить
         return false;
     }
     if (mem->value->type == OBJECT_TYPE) {
-        char* data = mem->value->data;
-        int index = 0;
-        struct value_type* res = createValue(NULL_TYPE, NULL);
-        char* leftVal = calloc(64, sizeof(char));
-        char* rightVal = calloc(64, sizeof(char));
-        char op = 0;
-        bool isLeft = true;
-        while (index < strlen(data)) {
-            if (data[index] == '+' || data[index] == '-' || data[index] == '*' || data[index] == '*') {
-                op = data[index];
-                isLeft = false;
-                if (!fillData(ast, res, leftVal, rightVal, op)) {
-                    return false;
-                }
-                index++;
-                continue;
-            }
-            if (isLeft) {
-                leftVal[strlen(leftVal)] = data[index];
-            }
-            else {
-                rightVal[strlen(rightVal)] = data[index];
-            }
-            index++;
-        }
-        if (!fillData(ast, res, leftVal, rightVal, op)) {
-            return false;
-        }
-        finalValue = res;
+        finalValue = getDataFromObject(ast, mem);
+        // printData(finalValue);
     }
     if (finalValue->type != val->type) {
         printf("Incompletable types: trying to init %s to %s in %d line", getStrFromValueType(finalValue->type),
@@ -797,7 +818,7 @@ bool doInit(struct ast* ast, struct command_type* command) { // Добавить
         return false;
     }
     if (val->data != finalValue->data) {
-        free(val->data);
+        // free(val->data);
         val->data = finalValue->data;
     }
     return true;

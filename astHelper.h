@@ -6,6 +6,7 @@ int getIntRes(int l, int r, char op);
 float getFloatRes(float l, float r, char op);
 struct value_type* getOp(struct value_type* left, struct value_type* right, char op);
 char* getValFromValueType(struct value_type* val);
+struct value_type* getDataFromObject(struct ast* ast, struct member_type* mem);
 bool transformAst(struct ast* ast);
 bool doFunc(struct ast* ast, struct command_type* com);
 bool doIf(struct ast* ast, struct command_type* com);

@@ -10,6 +10,7 @@
   void yyerror (char *s);
   extern struct ast* ast;
   int num = 1;
+  struct command_type* forCommand = NULL;
   enum VALUE_TYPE getValueType(char* val) {
       if (!strcmp(val, "bool")) {
           return BOOLEAN_TYPE;
@@ -94,17 +95,12 @@ command:
 | function {push_back_com(ast->functions, $1);}
 | if_expression {push_back_com(ast->if_expressions, $1);}
 | while_expression {push_back_com(ast->cycles, $1);}
-| for_expression {push_back_com(ast->cycles, $1);}
+| for_expression {push_back_com(ast->cycles, $1); push_back_com(ast->declarations, forCommand);}
 ;
 
 declaration:
-  LET WORD ':' type init ';' { if ($5->type != OBJECT_TYPE) {
-                                 if ($5->type != getValueType($4)) {
-                                  printf("Incorrect type for %s\n", $2);
-                                  YYABORT;
-                                 }                           
-                               }
-                               struct member_type* mem = createMember(createValue(getValueType($4), $5->data), $2);
+  LET WORD ':' type init ';' { 
+                               struct member_type* mem = createMember($5, $2);
                                $$ = createCommand(num++, MEMBER_COM_TYPE, mem); free($4);}
 ;
 
@@ -204,7 +200,7 @@ funcImpl:
 | declaration {$$ = createAst(); push_back_com($$->declarations, $1);}
 | if_expression {$$ = createAst(); push_back_com($$->if_expressions, $1);}
 | while_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
-| for_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
+| for_expression {$$ = createAst(); push_back_com($$->cycles, $1); push_back_com($$->declarations, forCommand);}
 ;
 
 brackets_functionImplementation:
@@ -244,10 +240,12 @@ while_expression:
 for_expression:
   FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation {int* a = calloc(16, sizeof(int));*a = $4;
                                                                   int* b = calloc(16, sizeof(int));*b = $6;
-                                                                  push_back_com($7->declarations, 
-                                                                  createCommand(num++, MEMBER_COM_TYPE, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),$2)));
                                                                   struct cycle_type* res = createCycle(createIfCond(strdup("<="),
                                                                   createValue(OBJECT_TYPE,$2),createValue(INTEGER_TYPE,b)), $7);
+                                                                  forCommand = createCommand(num++, MEMBER_COM_TYPE, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),$2));
+                                                                  char* str = calloc(16, sizeof(char));
+                                                                  strcat(str, $2); strcat(str, "+1");
+                                                                  push_back_com(res->body->initializations, createCommand(num++, INIT_COM_TYPE, (struct command_type*)createMember(createValue(OBJECT_TYPE, str), $2)));
                                                                   $$ = createCommand(num++, CYCLE_COM_TYPE, (void*)res);}
 ;
 

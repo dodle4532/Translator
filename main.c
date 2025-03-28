@@ -54,11 +54,12 @@ int main(int argc, char **argv) {
     // struct cycle_type* f6 = (struct cycle_type*)ast->cycles->commands[0]->command;
     // struct member_type* f7 = (struct member_type*)f6->body->initializations->commands[0]->command;
     // printf("%s %s %d {%s = %d}\n", f6->expr->leftVal->data, f6->expr->cmpChar, *(int*)f6->expr->rightVal->data, f7->name, *(int*)f7->value->data);
-
-    // for (int i = 0; i < ast->declarations->size; ++i) {
-    //     struct member_type* mem = ast->declarations->commands[i]->command;
-    //     printf("%s\n", mem->name);
+    // struct func_impl_type* f = ast->functions->commands[0]->command;
+    // for (int i = 0; i < f->impl->declarations->size; ++i) {
+    //     struct member_type* mem = f->impl->declarations->commands[i]->command;
+    //     printData(mem->value);
     // }
+
     if (!doAllAst(ast)) {
         printf("\n");
     }

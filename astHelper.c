@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 
+// В for i работает как переменная, а не должна
+
 struct command_vec* helpCommandVec;
 
 void quickSort(struct command_type** numbers, int left, int right)
@@ -727,6 +729,11 @@ bool doIf(struct ast* ast, struct command_type* command) {
 
 bool doCycle(struct ast* ast, struct command_type* com) {
     struct cycle_type* cycle = com->command;
+    int parIndex = -1;
+    if (cycle->par != NULL) {
+        parIndex = ast->declarations->size;
+        push_back_com(ast->declarations, createCommand(com->num - 1, MEMBER_COM_TYPE, cycle->par));
+    }
     struct value_type* leftVal = getValueFromIfCond(ast, cycle->expr->leftVal);
     if (!leftVal) {
         printf(": Left value in if cond not found");
@@ -747,6 +754,10 @@ bool doCycle(struct ast* ast, struct command_type* com) {
             return false;
         }
         res = checkExpression(leftVal, rightVal, cycle->expr->cmpChar);
+    }
+    if (parIndex >= 0) {
+        struct member_type* mem = (struct member_type*)ast->declarations->commands[parIndex]->command;
+        strcat(mem->name, "-");
     }
     return true;
 }
@@ -798,7 +809,7 @@ struct value_type* getDataFromObject(struct ast* ast, struct member_type* mem) {
     return res;
 }
 
-bool doInit(struct ast* ast, struct command_type* command) { // Добавить поддержку i+i+1 или через a = i+1 и i = i+a;
+bool doInit(struct ast* ast, struct command_type* command) {
     int num = command->num;
     struct member_type* mem = command->command;
     struct command_type* com = findValue(ast, mem->name);

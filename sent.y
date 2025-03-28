@@ -10,7 +10,6 @@
   void yyerror (char *s);
   extern struct ast* ast;
   int num = 1;
-  struct command_type* forCommand = NULL;
   enum VALUE_TYPE getValueType(char* val) {
       if (!strcmp(val, "bool")) {
           return BOOLEAN_TYPE;
@@ -95,7 +94,7 @@ command:
 | function {push_back_com(ast->functions, $1);}
 | if_expression {push_back_com(ast->if_expressions, $1);}
 | while_expression {push_back_com(ast->cycles, $1);}
-| for_expression {push_back_com(ast->cycles, $1); push_back_com(ast->declarations, forCommand);}
+| for_expression {push_back_com(ast->cycles, $1);}
 ;
 
 declaration:
@@ -200,7 +199,7 @@ funcImpl:
 | declaration {$$ = createAst(); push_back_com($$->declarations, $1);}
 | if_expression {$$ = createAst(); push_back_com($$->if_expressions, $1);}
 | while_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
-| for_expression {$$ = createAst(); push_back_com($$->cycles, $1); push_back_com($$->declarations, forCommand);}
+| for_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
 ;
 
 brackets_functionImplementation:
@@ -233,7 +232,7 @@ cmp:
 ;
 
 while_expression:
-  WHILE expression brackets_functionImplementation {  struct cycle_type* res = createCycle($2, $3);
+  WHILE expression brackets_functionImplementation {  struct cycle_type* res = createCycle($2, $3, NULL);
                                                       $$ = createCommand(num++, CYCLE_COM_TYPE, (void*)res);num++;}
 ;
 
@@ -241,8 +240,8 @@ for_expression:
   FOR WORD IN NUM TWO_POINTS NUM brackets_functionImplementation {int* a = calloc(16, sizeof(int));*a = $4;
                                                                   int* b = calloc(16, sizeof(int));*b = $6;
                                                                   struct cycle_type* res = createCycle(createIfCond(strdup("<="),
-                                                                  createValue(OBJECT_TYPE,$2),createValue(INTEGER_TYPE,b)), $7);
-                                                                  forCommand = createCommand(num++, MEMBER_COM_TYPE, (struct command_type*)createMember(createValue(INTEGER_TYPE,a),$2));
+                                                                  createValue(OBJECT_TYPE,$2),createValue(INTEGER_TYPE,b)), $7,
+                                                                  createMember(createValue(INTEGER_TYPE, a), $2));
                                                                   char* str = calloc(16, sizeof(char));
                                                                   strcat(str, $2); strcat(str, "+1");
                                                                   push_back_com(res->body->initializations, createCommand(num++, INIT_COM_TYPE, (struct command_type*)createMember(createValue(OBJECT_TYPE, str), $2)));

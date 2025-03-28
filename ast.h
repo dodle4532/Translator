@@ -74,7 +74,7 @@ struct if_expr_type {
 struct cycle_type {
     struct if_cond_type* expr;
     struct ast* body;
-    int* par;
+    struct member_type* par; // NULL когда while и i = 0 когда for
 };
 
 struct command_type {
@@ -105,7 +105,7 @@ struct command_type* createCommand(int num, enum COMMAND_TYPE type, void* comman
 struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, struct ast* impl, struct value_type* returnValue);
 struct if_expr_type* createIfExpr(struct if_cond_type* cond, struct ast* body, struct if_expr_type* _else);
 struct if_cond_type* createIfCond(char* cmpChar, struct value_type* leftVal, struct value_type* rightVal);
-struct cycle_type* createCycle(struct if_cond_type* expr, struct ast* body);
+struct cycle_type* createCycle(struct if_cond_type* expr, struct ast* body, struct member_type* par);
 struct member_vec* createMemberVec();
 struct value_vec* createValueVec();
 struct command_vec* createCommandVec();

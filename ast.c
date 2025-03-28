@@ -71,11 +71,11 @@ struct if_cond_type* createIfCond(char* cmpChar, struct value_type* leftVal, str
     return res;
 }
 
-struct cycle_type* createCycle(struct if_cond_type* expr, struct ast* body) {
+struct cycle_type* createCycle(struct if_cond_type* expr, struct ast* body, struct member_type* par) {
     struct cycle_type* res = calloc(1, sizeof(struct cycle_type));
     res->expr = expr;
     res->body = body;
-    res->par = NULL;
+    res->par = par;
     return res;
 }
 

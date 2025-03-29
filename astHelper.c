@@ -81,6 +81,7 @@ struct command_type* findValue(struct ast* ast, char* name) {
     strcat(newName, "+");
     for (int i = 0; i < ast->declarations->size; ++i) {
         struct member_type* mem = ast->declarations->commands[i]->command;
+        // printf("%s\n", mem->name);
         if (!strcmp(newName, mem->name)) {
             return ast->declarations->commands[i];
         }
@@ -174,6 +175,12 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
             // free(left->data);
             // left->data = NULL;
         }
+        if (left->type == FLOAT_TYPE) {
+            l1 = calloc(32,sizeof(char));
+            sprintf(l1, "%f", *(float*)left->data);
+            // free(left->data);
+            // left->data = NULL;
+        }
         else {
             l1 = (char*)left->data;
             if (left->type == STRING_TYPE) {
@@ -183,6 +190,12 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
         if (right->type == INTEGER_TYPE) {
             l2 = calloc(32,sizeof(char));
             sprintf(l2, "%d", *(int*)right->data);
+            // free(right->data);
+            // right->data = NULL;
+        }
+        if (right->type == FLOAT_TYPE) {
+            l2 = calloc(32,sizeof(char));
+            sprintf(l2, "%f", *(float*)right->data);
             // free(right->data);
             // right->data = NULL;
         }
@@ -374,6 +387,133 @@ bool fillData(struct ast* ast, struct value_type* res, char* leftVal, char* righ
     return true;
 }
 
+struct value_type* getDataFromFunc(struct ast* ast, struct func_call_type* call) {
+    char* name = call->name;
+    if (!strcmp(name, "println!")) {
+        printf("You are not allowed to sigh println! to object");
+        return NULL;
+    }
+    struct func_impl_type* impl;
+    bool isFind = false;
+    for (int i = 0; i < ast->functions->size; ++i) {
+        impl = ast->functions->commands[i]->command;
+        if (!strcmp(name, impl->name)) {
+            isFind = true;
+            break;
+        }
+    }
+    if (!isFind) {
+        printf("Implementation of funciton %s not found", name);
+        return NULL;
+    }
+    if (impl->returnValue->type == NULL_TYPE) {
+        printf("Trying to sign void function %s to value", impl->name);
+        return NULL;
+    }
+    struct ast* mergedAst = createAstToFunc(ast, impl->impl);
+    if (impl->parametrs->size != call->values->size) {
+        printf("Incorrect number of arguments in function call %s, should be %d, but there is %d\n",
+                impl->name, impl->parametrs->size, call->values->size);
+        return NULL;
+    }
+    for (int i = 0; i < impl->parametrs->size; ++i) {
+        struct value_type* val = call->values->values[i];
+        if (val->type == OBJECT_TYPE) {
+            struct command_type* com = findValue(ast, val->data);
+            if (!com) {
+                printf("%s not found", val->data);
+                return NULL;
+            }
+            val = getValue(com);
+        }
+        if (val->type != impl->parametrs->members[i]->value->type) {
+            printf("Incorrect type of parametr %s in function call %s, shoulde be %s, but there is %s",
+                    impl->parametrs->members[i]->name, call->name, getStrFromValueType(impl->parametrs->members[i]->value->type),
+                    getStrFromValueType(val->type));
+            return NULL;
+        }
+        // for (int i = 0; i < ast->declarations->size; ++i) {
+        //     struct member_type* mem = ast->declarations->commands[i]->command;
+        //     printf("%s\n", mem->name);
+        // }
+        char* newName = strdup(impl->parametrs->members[i]->name);
+        strcat(newName, "+");
+        struct member_type* mem = createMember(val, impl->parametrs->members[i]->name);
+        // printf("%s=%d\n",mem->name, *(int*)mem->value->data);
+        struct command_type* com = createCommand(0, MEMBER_COM_TYPE, (void*)mem);
+        // deleteValFromAst(mergedAst, impl->parametrs->members[i]->name);
+        push_back_com(mergedAst->declarations, com);
+        // for (int i = 0; i < ast->declarations->size; ++i) {
+        //     struct member_type* mem = ast->declarations->commands[i]->command;
+        //     printf("%s\n", mem->name);
+        // }
+        // changeNum(mergedAst, com);
+    }
+
+    for (int i = 0; i < impl->impl->functionCalls->size; ++i) {
+        struct value_vec* newParametrs = createValueVec();
+        struct func_call_type* c = impl->impl->functionCalls->commands[i]->command;
+        for (int j = 0; j < c->values->size; ++j) {
+            struct value_type* val = c->values->values[j];
+            // printf("%d\n", *(int*)val->data);
+            if (val->type != OBJECT_TYPE) {
+                push_back_val(newParametrs, val);
+            }
+            else {
+                for (int i = 0; i < mergedAst->declarations->size; ++i) {
+                    struct member_type* mem = mergedAst->declarations->commands[i]->command;
+                    // if (!strcmp(mem->name, (char*)val->data)) {
+                    //     //free(mem->value);
+                    //     mem->value = 
+                    //     break;
+                    // }
+                    // printf("---%s %d\n", mem->name, *(int*)mem->value->data);
+                }
+                struct command_type* com = findValue(mergedAst, (char*)val->data);
+                if (!com) {
+                    printf("Not found value %s", val->data);
+                    return NULL;
+                }
+                push_back_val(newParametrs, getValue(com));
+            }
+        }
+        struct value_vec* tmp = c->values;
+        c->values = newParametrs;
+        
+        // if (!doFunc(mergedAst, impl->impl->functionCalls->commands[i])) {
+        //     return false;
+        // }
+        // for (int i = 0; i < impl->parametrs->size; ++i) {
+        //     deleteValFromAst(mergedAst, impl->parametrs->members[i]->name);
+        // }
+        // free_value_vec(tmp);
+        // free_value_vec(newParametrs);
+    }
+    if (!doAst(mergedAst)) {
+        return NULL;
+    }
+    if (impl->returnValue->type != OBJECT_TYPE) {
+        if (impl->returnValue->type != impl->wantedReturnType) {
+            printf("Trying to return %s, but needed %s", getStrFromValueType(impl->returnValue->type),
+                                                         getStrFromValueType(impl->wantedReturnType));
+            return NULL;
+        }
+        return impl->returnValue;
+    }
+    struct command_type* com = findValue(mergedAst, impl->returnValue->data);
+    if (!com) {
+        printf("Return value %s not found", impl->returnValue->data);
+        return NULL;
+    }
+    struct value_type* res = getValue(com);
+    if (res->type != impl->wantedReturnType) {
+        printf("Trying to return %s, but needed %s", getStrFromValueType(res->type),
+                                                     getStrFromValueType(impl->wantedReturnType));
+        return NULL;
+    }
+    return res;
+}
+
 bool transformAst(struct ast* ast) {
     for (int i = 0; i < ast->declarations->size; ++i) {
         struct member_type* mem1 = ast->declarations->commands[i]->command;
@@ -394,6 +534,20 @@ bool transformAst(struct ast* ast) {
             mem1->value = val;
             // printData(mem1->value);
         }
+        if (mem1->value->type == FUNC_TYPE) {
+            struct command_type* com = mem1->value->data;
+            struct func_call_type* call = (struct func_call_type*)com->command;
+            struct value_type* val = getDataFromFunc(ast, call);
+            if (!val) {
+                return false;
+            }
+            mem1->value = val;
+        }
+        if (mem1->wantedType != mem1->value->type && mem1->wantedType != NULL_TYPE) {
+            printf("Trying to sign %s to %s in initializtion of %s", getStrFromValueType(mem1->value->type),
+                                                                     getStrFromValueType(mem1->wantedType), mem1->name);
+            return false;
+        }
     }
     // free_command_vec(ast->initializations, 2);
     return true;
@@ -406,6 +560,21 @@ char* getValFromValueType(struct value_type* val) {
     if (val->type == INTEGER_TYPE) {
         char* res = calloc(16, sizeof(char));
         sprintf(res, "%d", *(int*)val->data);
+        return res;
+    }
+    if (val->type == FLOAT_TYPE) {
+        char* res = calloc(16, sizeof(char));
+        sprintf(res, "%f", *(float*)val->data);
+        return res;
+    }
+    if (val->type == BOOLEAN_TYPE) {
+        char* res = calloc(8, sizeof(char));
+        if (*(int*)val->data == 0) {
+            strcat(res, "false");
+        }
+        else {
+            strcat(res, "true");
+        }
         return res;
     }
     return NULL;
@@ -732,7 +901,8 @@ bool doCycle(struct ast* ast, struct command_type* com) {
     int parIndex = -1;
     if (cycle->par != NULL) {
         parIndex = ast->declarations->size;
-        push_back_com(ast->declarations, createCommand(com->num - 1, MEMBER_COM_TYPE, cycle->par));
+        strcat(cycle->par->name, "+");
+        push_back_com(ast->declarations, createCommand(0, MEMBER_COM_TYPE, cycle->par));
     }
     struct value_type* leftVal = getValueFromIfCond(ast, cycle->expr->leftVal);
     if (!leftVal) {
@@ -1162,14 +1332,14 @@ void free_func_impl(struct func_impl_type* func_impl) {
     }
 }
 
-void free_command_vec(struct command_vec* vec, int n) {
+void free_command_vec(struct command_vec* vec) {
     if (vec) {
         if (vec->commands) {
             for (size_t i = 0; i < vec->size; ++i) {
                 if (vec->commands[i]) {
                     // Determine the type of command and free accordingly
-                    switch (n) {
-                        case 1: // Assuming 1 is for declarations (value_type)
+                    switch (vec->commands[i]->type) {
+                        case MEMBER_COM_TYPE: // Assuming 1 is for declarations (value_type)
                             if (vec->commands[i]->command) {
                                 struct value_type* val = (struct value_type*)vec->commands[i]->command;
                                 if(val->data){
@@ -1178,7 +1348,7 @@ void free_command_vec(struct command_vec* vec, int n) {
                                 free(val);
                             }
                             break;
-                        case 2: // Assuming 2 is for initializations (value_type)
+                        case INIT_COM_TYPE: // Assuming 2 is for initializations (value_type)
                             if (vec->commands[i]->command) {
                                 struct value_type* val = (struct value_type*)vec->commands[i]->command;
                                 if(val->data){
@@ -1188,7 +1358,7 @@ void free_command_vec(struct command_vec* vec, int n) {
                                 vec->size = 0;
                             }
                             break;
-                        case 3: // Assuming 3 is for function calls (func_call_type)
+                        case FUNC_CALL_TYPE: // Assuming 3 is for function calls (func_call_type)
                             if (vec->commands[i]->command) {
                                 struct func_call_type* func_call = (struct func_call_type*)vec->commands[i]->command;
                                 if (func_call->name) {
@@ -1201,10 +1371,10 @@ void free_command_vec(struct command_vec* vec, int n) {
                                 free(func_call);
                             }
                             break;
-                        case 4: // Assuming 4 is for functions (func_impl_type)
+                        case FUNC_IMPL_TYPE: // Assuming 4 is for functions (func_impl_type)
                             // Functions are freed by the free_func_impl_vec
                             break;
-                        case 5: // Assuming 5 is for if_expressions (if_expr_type)
+                        case IF_COM_TYPE: // Assuming 5 is for if_expressions (if_expr_type)
                             if (vec->commands[i]->command) {
                                 struct if_expr_type* if_expr = (struct if_expr_type*)vec->commands[i]->command;
                                 if (if_expr->cond) {
@@ -1236,7 +1406,7 @@ void free_command_vec(struct command_vec* vec, int n) {
                                 free(if_expr);
                             }
                             break;
-                         case 6: // Assuming 6 is for cycles (cycle_type)
+                         case CYCLE_COM_TYPE: // Assuming 6 is for cycles (cycle_type)
                             if (vec->commands[i]->command) {
                                 struct cycle_type* cycle = (struct cycle_type*)vec->commands[i]->command;
                                 if (cycle->expr) {
@@ -1284,13 +1454,13 @@ void free_command_vec(struct command_vec* vec, int n) {
 void freeAst(struct ast* ast) {
     if (ast) {
         if (ast->declarations) {
-            free_command_vec(ast->declarations, 1);
+            free_command_vec(ast->declarations);
         }
         if (ast->initializations) {
-            free_command_vec(ast->initializations, 2);
+            free_command_vec(ast->initializations);
         }
         if (ast->functionCalls) {
-            free_command_vec(ast->functionCalls, 3);
+            free_command_vec(ast->functionCalls);
         }
         if (ast->functions) {
             // First, get the command_vec
@@ -1311,10 +1481,10 @@ void freeAst(struct ast* ast) {
             free(func_command_vec); // Освобождаем сам command_vec
         }
         if (ast->if_expressions) {
-            free_command_vec(ast->if_expressions, 5);
+            free_command_vec(ast->if_expressions);
         }
         if (ast->cycles) {
-            free_command_vec(ast->cycles, 6);
+            free_command_vec(ast->cycles);
         }
         free(ast);
     }

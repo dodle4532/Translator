@@ -13,6 +13,7 @@
 [ \t] ; // ignore all whitespace
 [ \n] ;
 [0-9]+      {yylval.integer = atoi(yytext); return NUM;}
+[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?      { yylval.fl = atof(yytext); return FLOAT; }
 "let" {return LET;}
 "u32" {yylval.str = strdup(yytext); return U32;}
 "f32" {yylval.str = strdup(yytext); return F32;}
@@ -36,6 +37,7 @@
 ">="  {yylval.str = strdup(">="); return EQ_MORE;}
 ">"  {yylval.str = strdup(">"); return MORE;}
 ".."  {return TWO_POINTS;}
+"->"  {return ARROW;}
 "\""  {return QUOTE;}
 [a-zA-Z][a-zA-Z0-9!]* {yylval.str = strdup(yytext); return WORD;}
 ":"      {return ':';}

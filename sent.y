@@ -11,6 +11,9 @@
   extern struct ast* ast;
   int num = 1;
   enum VALUE_TYPE getValueType(char* val) {
+      if (val == NULL) {
+        return NULL_TYPE;
+      }
       if (!strcmp(val, "bool")) {
           return BOOLEAN_TYPE;
       }
@@ -29,6 +32,7 @@
 %union {
     char* str;
     int integer;
+    float fl;
     struct member_type* memb;
     struct value_type* _val;
     struct value_vec* valVec;
@@ -40,6 +44,7 @@
 }
 
 %token <integer> NUM
+%token <fl> FLOAT
 %token <str> WORD
 %token <str> STRING
 %token LET
@@ -61,6 +66,7 @@
 %token QUOTE
 %token IN
 %token TWO_POINTS
+%token ARROW
 %token RETURN
 %token <str> LESS
 %token <str> MORE
@@ -71,7 +77,7 @@
 
 
 %type <com> command declaration initialization if_expression functionCall function while_expression for_expression
-%type <str> type cmp
+%type <str> type cmp returnArrow
 %type <_val> val expr second assignment init ret returnVal
 %type <memb> par
 %type <valVec> value  
@@ -90,7 +96,7 @@ input:
 command:
   declaration {push_back_com(ast->declarations, $1);}
 | initialization {push_back_com(ast->initializations, $1);}
-| functionCall {push_back_com(ast->functionCalls, $1);}
+| functionCall ';' {push_back_com(ast->functionCalls, $1);}
 | function {push_back_com(ast->functions, $1);}
 | if_expression {push_back_com(ast->if_expressions, $1);}
 | while_expression {push_back_com(ast->cycles, $1);}
@@ -100,6 +106,7 @@ command:
 declaration:
   LET WORD ':' type init ';' { 
                                struct member_type* mem = createMember($5, $2);
+                               mem->wantedType = getValueType($4);
                                $$ = createCommand(num++, MEMBER_COM_TYPE, mem); free($4);}
 ;
 
@@ -125,8 +132,8 @@ type:
 ;
 
 functionCall:
-  WORD '(' value ')' ';' { struct func_call_type* f = createFuncCall($1, $3);
-                           $$ = createCommand(num++, FUNC_CALL_TYPE, f);}
+  WORD '(' value ')'       { struct func_call_type* f = createFuncCall($1, $3);
+                             $$ = createCommand(num++, FUNC_CALL_TYPE, f);}
 ;
 
 value:
@@ -151,7 +158,7 @@ parametrs:
 ;
 
 par:
-  type WORD {$$ = createMember(createValue(getValueType($1), NULL), $2);}
+  WORD ':' type {$$ = createMember(createValue(getValueType($3), NULL), $1);}
 | %empty   {$$ = createMember(createValue(NULL_TYPE, NULL), NULL);}
 ;
 
@@ -162,6 +169,9 @@ val:
 | NUM    { int* a = malloc(sizeof(int));
            *a = $1;
            $$ = createValue(INTEGER_TYPE, a);}
+| FLOAT    { float* a = malloc(sizeof(float));
+           *a = $1;
+           $$ = createValue(FLOAT_TYPE, a);}
 | WORD   { char* str = calloc(64, sizeof(char));
            strcpy(str, $1);
            $$ = createValue(OBJECT_TYPE, str); free($1);}
@@ -171,11 +181,18 @@ val:
 | FALSE   { int* a = malloc(sizeof(int));
            *a = $1;
            $$ = createValue(BOOLEAN_TYPE, a);}
+| functionCall {$$ = createValue(FUNC_TYPE, $1);}
 ;
 
 function:
-  FN WORD '(' parametrs ')' '{' functionImplementation ret '}' { struct func_impl_type* res = createFuncImpl($2, $4, $7, $8);
+  FN WORD '(' parametrs ')' returnArrow '{' functionImplementation ret '}' { struct func_impl_type* res = createFuncImpl($2, $4, $8, 
+                                                                             $9); res->wantedReturnType = getValueType($6); free($6);
                                                                           $$ = createCommand(num++, FUNC_IMPL_TYPE, (void*)res);}
+;
+
+returnArrow:
+  ARROW type {$$ = $2;}
+| %empty     {$$ = NULL;}
 ;
 
 functionImplementation:
@@ -194,7 +211,7 @@ returnVal:
 ;
 
 funcImpl:
-  functionCall {$$ = createAst(); push_back_com($$->functionCalls, $1);}
+  functionCall ';' {$$ = createAst(); push_back_com($$->functionCalls, $1);}
 | initialization {$$ = createAst(); push_back_com($$->initializations, $1);}
 | declaration {$$ = createAst(); push_back_com($$->declarations, $1);}
 | if_expression {$$ = createAst(); push_back_com($$->if_expressions, $1);}

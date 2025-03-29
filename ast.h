@@ -4,12 +4,13 @@ typedef enum {false, true} bool;
 
 enum VALUE_TYPE
 {
-  STRING_TYPE,
-  OBJECT_TYPE,
-  FLOAT_TYPE,
-  INTEGER_TYPE,
-  BOOLEAN_TYPE,
-  NULL_TYPE
+    STRING_TYPE,
+    OBJECT_TYPE,
+    FLOAT_TYPE,
+    INTEGER_TYPE,
+    BOOLEAN_TYPE,
+    NULL_TYPE,
+    FUNC_TYPE
 };
 
 enum COMMAND_TYPE
@@ -33,6 +34,7 @@ struct member_type
 {
 	char *name;
 	struct value_type *value;
+    enum VALUE_TYPE wantedType;
 };
 
 struct value_vec {
@@ -57,6 +59,7 @@ struct func_impl_type {
 	struct member_vec* parametrs;
 	struct ast* impl;
     struct value_type* returnValue;
+    enum VALUE_TYPE wantedReturnType;
 };
 
 struct if_cond_type {

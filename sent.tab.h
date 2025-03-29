@@ -55,32 +55,34 @@ extern int yydebug;
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
     NUM = 258,                     /* NUM  */
-    WORD = 259,                    /* WORD  */
-    STRING = 260,                  /* STRING  */
-    LET = 261,                     /* LET  */
-    U32 = 262,                     /* U32  */
-    U64 = 263,                     /* U64  */
-    F32 = 264,                     /* F32  */
-    STR = 265,                     /* STR  */
-    BOOL = 266,                    /* BOOL  */
-    TRUE = 267,                    /* TRUE  */
-    FALSE = 268,                   /* FALSE  */
-    FN = 269,                      /* FN  */
-    INT = 270,                     /* INT  */
-    IF = 271,                      /* IF  */
-    ELSE = 272,                    /* ELSE  */
-    FOR = 273,                     /* FOR  */
-    WHILE = 274,                   /* WHILE  */
-    EQUALS = 275,                  /* EQUALS  */
-    NOT_EQUALS = 276,              /* NOT_EQUALS  */
-    QUOTE = 277,                   /* QUOTE  */
-    IN = 278,                      /* IN  */
-    TWO_POINTS = 279,              /* TWO_POINTS  */
-    RETURN = 280,                  /* RETURN  */
-    LESS = 281,                    /* LESS  */
-    MORE = 282,                    /* MORE  */
-    EQ_LESS = 283,                 /* EQ_LESS  */
-    EQ_MORE = 284                  /* EQ_MORE  */
+    FLOAT = 259,                   /* FLOAT  */
+    WORD = 260,                    /* WORD  */
+    STRING = 261,                  /* STRING  */
+    LET = 262,                     /* LET  */
+    U32 = 263,                     /* U32  */
+    U64 = 264,                     /* U64  */
+    F32 = 265,                     /* F32  */
+    STR = 266,                     /* STR  */
+    BOOL = 267,                    /* BOOL  */
+    TRUE = 268,                    /* TRUE  */
+    FALSE = 269,                   /* FALSE  */
+    FN = 270,                      /* FN  */
+    INT = 271,                     /* INT  */
+    IF = 272,                      /* IF  */
+    ELSE = 273,                    /* ELSE  */
+    FOR = 274,                     /* FOR  */
+    WHILE = 275,                   /* WHILE  */
+    EQUALS = 276,                  /* EQUALS  */
+    NOT_EQUALS = 277,              /* NOT_EQUALS  */
+    QUOTE = 278,                   /* QUOTE  */
+    IN = 279,                      /* IN  */
+    TWO_POINTS = 280,              /* TWO_POINTS  */
+    ARROW = 281,                   /* ARROW  */
+    RETURN = 282,                  /* RETURN  */
+    LESS = 283,                    /* LESS  */
+    MORE = 284,                    /* MORE  */
+    EQ_LESS = 285,                 /* EQ_LESS  */
+    EQ_MORE = 286                  /* EQ_MORE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -89,10 +91,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 29 "sent.y"
+#line 32 "sent.y"
 
     char* str;
     int integer;
+    float fl;
     struct member_type* memb;
     struct value_type* _val;
     struct value_vec* valVec;
@@ -102,7 +105,7 @@ union YYSTYPE
     struct if_cond_type* if_cond;
     struct if_expr_type* if_expr;
 
-#line 106 "sent.tab.h"
+#line 109 "sent.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

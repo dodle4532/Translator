@@ -1,12 +1,18 @@
+fn g() -> u32 {
+    a = 0;
+    return 5;
+}
+
+fn f() -> u32 {
+    let a : u32 = 1;
+    let b : u32 = g();
+    let c : u32 = a + b;
+    return c;
+}
+
 fn main() {
-    let a : u32 = 0;
-    while a < 10 {
-        a = a + 1;
-        println!("{a}");
-    }
-    println!("\n");
-    for i in 1..10 {
-        println!("{i}");
-    }
-    println!("\n");
+    let a : u32 = f();
+    let b : bool = false;
+    let c : f32 = 5.53 + 1.2 - 0.5;
+    println!("{c} + {b} + {a}\n");
 }

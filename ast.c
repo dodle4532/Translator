@@ -35,6 +35,7 @@ struct member_type* createMember(struct value_type* val, char* name) {
     struct member_type* mem = calloc(1, sizeof(struct member_type));
     mem->name = name;
     mem->value = val;
+    mem->wantedType = NULL_TYPE;
     return mem;
 }
 
@@ -52,6 +53,7 @@ struct func_impl_type* createFuncImpl(char* name, struct member_vec* parametrs, 
     res->parametrs = parametrs;
     res ->impl = impl;
     res->returnValue = returnValue;
+    res->wantedReturnType = NULL_TYPE;
     return res;
 }
 

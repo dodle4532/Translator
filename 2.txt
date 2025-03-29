@@ -1,8 +1,8 @@
-fn print(u32 x) {
-    println!("{x}\n"); return;
+fn print(x : u32) {
+    println!("{x}\n");
 }
-fn printStr(str x) {
-    println!("{x}\n"); print(567); return;
+fn printStr(x : str) {
+    println!("{x}\n"); print(567);
 }
 
 
@@ -14,10 +14,12 @@ fn main() {
     if y >= z {
         print(y);
     }
+    let i : u32 = 2;
     while i == 2 {
-        print(2); i = 3;
+        print(i); i = 3;
     }
-    for i in 0..5 {i = 5;}
+    for i in 0..5 { println!("{i}");}
+    println!("\n");
     let b : bool = false;
     let x : str = "1234";
     if x == "1234" {

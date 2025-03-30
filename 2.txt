@@ -9,10 +9,10 @@ fn printStr(x : str) {
 fn main() {
     let a : str = "Ксюша молодец";
     let y : u32 = 5;
-    let z : u32 = 1;
+    let z : u32 = y+1;
     println!("Правда ли, что {a}? - ДА!!!!!!\n");
-    if y >= z {
-        print(y);
+    if y != z {
+        print(z);
     }
     let i : u32 = 2;
     while i == 2 {

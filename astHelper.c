@@ -77,6 +77,21 @@ struct command_type* findValue(struct ast* ast, char* name) {
     //         return helpCommandVec->commands[i];
     //     }
     // }
+    bool isOp = false;
+    for (int i = 0; i < strlen(name) - 1; ++i) {
+        if (name[i] == '+' || name[i] == '-' || name[i] == '*' || name[i] == '*') {
+            isOp = true;
+        }
+    } 
+    if (isOp) {
+        struct member_type* mem = createMember(createValue(OBJECT_TYPE, name), name);
+        struct value_type* val = getDataFromObject(ast, mem);
+        if (!val) {
+            return NULL;
+        }
+        mem->value = val;
+        return createCommand(0, MEMBER_COM_TYPE, mem);
+    }
     char* newName = strdup(name);
     strcat(newName, "+");
     for (int i = 0; i < ast->declarations->size; ++i) {
@@ -193,7 +208,7 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
             // free(right->data);
             // right->data = NULL;
         }
-        if (right->type == FLOAT_TYPE) {
+        else if (right->type == FLOAT_TYPE) {
             l2 = calloc(32,sizeof(char));
             sprintf(l2, "%f", *(float*)right->data);
             // free(right->data);
@@ -633,8 +648,15 @@ bool doFunc(struct ast* ast, struct command_type* command) {
             }
             strncat(res, tmp, prefix_length-1);
             struct command_type* com = findValue(ast, value);
+            bool isOp = false;
+            for (int i = 0; i < strlen(value); ++i) {
+                if (value[i] == '+' || value[i] == '-' || value[i] == '*' || value[i] == '*') {
+                    isOp = true;
+                    break;
+                }
+            }
             if (!com) {
-                printf("Undefined reference to %s", value);
+                if (!isOp) printf("Undefined reference to %s", value);
                 return false;
             }
             char* str = getValFromValueType(getValue(com));

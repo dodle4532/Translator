@@ -5,7 +5,7 @@ struct value_type* getValueFromStr(char* str);
 int getIntRes(int l, int r, char op);
 float getFloatRes(float l, float r, char op);
 struct value_type* getOp(struct value_type* left, struct value_type* right, char op);
-char* getValFromValueType(struct value_type* val);
+char* getStrFromValue(struct value_type* val);
 struct value_type* getDataFromObject(struct ast* ast, struct member_type* mem);
 struct value_type* getDataFromFunc(struct ast* ast, struct func_call_type* call);
 bool transformAst(struct ast* ast);

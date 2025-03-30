@@ -1,10 +1,10 @@
-fn f() -> u32 {
-    let y : u32 = 5;
-    let x : u32 = 6;
-    return y*x;
+fn f() -> u32 { 
+    let u : u32 = 5;
+    u = 666;
+    return u;
 }
 
 fn main() {
-    let z : u32 = f();
-    println!("{z}\n");
+    let z : u32 = f()+1;
+    println!("{} {} {}\n", f(), z, f());
 }

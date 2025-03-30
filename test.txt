@@ -1,49 +1,3 @@
-fn print(x : u32) {
-    println!("{x}\n");
-}
-fn printStr(x : str) {
-    println!("{x}\n"); print(567);
-}
-
-
-fn main() {
-    let a : str = "Ксюша молодец";
-    let y : u32 = 5;
-    let z : u32 = y+1;
-    println!("Правда ли, что {a}? - ДА!!!!!!\n");
-    if y != z {
-        print(z);
-    }
-    let i : u32 = 2;
-    while i == 2 {
-        print(i); i = 3;
-    }
-    for i in 0..5 { println!("{i}");}
-    println!("\n");
-    let b : bool = false;
-    let x : str = "1234";
-    if x == "1234" {
-        if b == true {
-            println!("ok\n");
-        }
-        else {
-            println!("no\n");
-            printStr(x);
-        }
-    }
-    else {
-        println!("no!\n");
-    }
-    if x != "1234" {
-        println!("How?????\n");
-        printStr(x);
-    }
-    else {
-        println!("else working nice\n");
-        printStr(x);
-    }
-}
-
 fn factorial(n: u64) -> u64 {
     if n == 0 {
         1
@@ -72,15 +26,7 @@ fn fibonacci(n: u32) -> u32 {
     }
 }
 
-fn string_operations() -> String {
-    let mut message = String::from("Hello, ");
-    message.push_str("world!");
-    let upper_case = message.to_uppercase();
-    upper_case
-}
-
 fn main() {
-    // u32 examples
     let number: u32 = 42;
     println!("The number is: {}", number);
 
@@ -90,14 +36,12 @@ fn main() {
     let prime_check_num: u32 = 17;
     println!("Is {} a prime number? {}", prime_check_num, is_prime(prime_check_num));
 
-    // u64 examples
     let large_number: u64 = 123456789012345;
     println!("A large number is: {}", large_number);
 
     let factorial_result: u64 = factorial(10);
     println!("Factorial of 10 is: {}", factorial_result);
 
-    // f32 examples
     let pi: f32 = 3.14159;
     println!("Pi is approximately: {}", pi);
 
@@ -105,7 +49,6 @@ fn main() {
     let area: f32 = pi * radius * radius;
     println!("Area of a circle with radius {} is: {}", radius, area);
 
-    // bool examples
     let is_true: bool = true;
     let is_false: bool = false;
     println!("Is true? {}", is_true);
@@ -118,15 +61,13 @@ fn main() {
     println!("true || false: {}", or_result);
     println!("!true: {}", not_result);
 
-    // str examples
-    let message: String = string_operations();
+    let message: str = string_operations();
     println!("{}", message);
 
     let name: &str = "Rustacean";
-    let greeting: String = format!("Hello, {}!", name);
+    let greeting: str = format!("Hello, {}!", name);
     println!("{}", greeting);
 
-    // Control Flow - if/else and loops
     let fib_number: u32 = 10;
     println!("The {}th Fibonacci number is: {}", fib_number, fibonacci(fib_number));
 
@@ -138,18 +79,7 @@ fn main() {
         }
     }
 
-    // Combining types and operations
-    let combined_result: f32 = (factorial_result as f32 / 100.0) + pi;
+    let combined_result: f32 = factorial_result as f32 / 100.0 + pi;
     println!("Combined result: {}", combined_result);
 
-    // Demonstrate shadowing
-    let shadowed_variable: u32 = 10;
-    println!("Shadowed variable (outer scope): {}", shadowed_variable);
-
-    {
-        let shadowed_variable: &str = "Shadowed!";
-        println!("Shadowed variable (inner scope): {}", shadowed_variable);
-    }
-
-    println!("Shadowed variable (outer scope, after inner scope): {}", shadowed_variable);
 }

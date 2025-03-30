@@ -69,6 +69,9 @@ struct command_vec* sortAst(struct ast* ast) {
 }
 
 struct command_type* findValue(struct ast* ast, char* name) {
+    if (!strcmp(name, "")) {
+        return NULL;
+    }
     // printf("-------\n");
     // for (int i = helpCommandVec->size - 1; i >= 0; i-=1) {
     //     struct member_type* mem = helpCommandVec->commands[i]->command;
@@ -234,10 +237,23 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
         free(l2);
         return val;
     }
-    if (op == '+') {
+    struct value_type* leftVal = left;
+    struct value_type* rightVal = right;
+    // if (left->type == FUNC_TYPE) {
+    //     leftVal = getDataFromFunc(ast, (struct func_call_type*)left->data);
+    // }
+    // if (right->type == FUNC_TYPE) {
+    //     rightVal = getDataFromFunc(ast, (struct func_call_type*)right->data);
+    // }
+    if (leftVal == left && rightVal == right) {
         free(val);
         return NULL;
     }
+    return getOp(leftVal, rightVal, op);
+    // if (op == '+') {
+    //     free(val);
+    //     return NULL;
+    // }
     if (left->type == STRING_TYPE && left->type == STRING_TYPE && op == '+') {
         strcat((char*) left->data, (char*)right->data);
         val->type = STRING_TYPE;
@@ -405,7 +421,7 @@ bool fillData(struct ast* ast, struct value_type* res, char* leftVal, char* righ
 struct value_type* getDataFromFunc(struct ast* ast, struct func_call_type* call) {
     char* name = call->name;
     if (!strcmp(name, "println!")) {
-        printf("You are not allowed to sigh println! to object");
+        printf("You are not allowed to sign println! to object");
         return NULL;
     }
     struct func_impl_type* impl;
@@ -452,7 +468,7 @@ struct value_type* getDataFromFunc(struct ast* ast, struct func_call_type* call)
         //     printf("%s\n", mem->name);
         // }
         char* newName = strdup(impl->parametrs->members[i]->name);
-        strcat(newName, "+");
+        strcat(newName, ".");
         struct member_type* mem = createMember(val, impl->parametrs->members[i]->name);
         // printf("%s=%d\n",mem->name, *(int*)mem->value->data);
         struct command_type* com = createCommand(0, MEMBER_COM_TYPE, (void*)mem);
@@ -556,7 +572,9 @@ bool transformAst(struct ast* ast) {
             if (!val) {
                 return false;
             }
-            mem1->value = val;
+            free(mem1->value->data);
+            mem1->value->data = val->data;
+            mem1->value->type = val->type;
         }
         if (mem1->wantedType != mem1->value->type && mem1->wantedType != NULL_TYPE) {
             printf("Trying to sign %s to %s in initializtion of %s", getStrFromValueType(mem1->value->type),
@@ -564,11 +582,27 @@ bool transformAst(struct ast* ast) {
             return false;
         }
     }
+    for (int i = 0; i < ast->initializations->size; ++i) {
+        bool isFind = false;
+        struct member_type* init = ast->initializations->commands[i]->command;
+        for (int j = 0; j < ast->declarations->size; ++j) {
+            struct member_type* decl = ast->declarations->commands[j]->command;
+            if (!strcmp(decl->name, init->name)) {
+                if (ast->declarations->commands[j]->num < ast->initializations->commands[i]->num) {
+                    isFind = true;
+                }
+            }
+        }
+        if (!isFind) {
+            printf("Trying to init %s, but there is no declaration", init->name);
+            return false;
+        }
+    }
     // free_command_vec(ast->initializations, 2);
     return true;
 }
 
-char* getValFromValueType(struct value_type* val) {
+char* getStrFromValue(struct value_type* val) {
     if (val->type == NULL_TYPE || val->type == STRING_TYPE || val->type == OBJECT_TYPE) {
       return strdup((char*)val->data);
     } 
@@ -621,17 +655,20 @@ bool doFunc(struct ast* ast, struct command_type* command) {
     if (!strcmp(name, "println!")) {
         char* tmp = calloc(256, sizeof(char));
         int size = 0;
-        for (int i = 0; i < call->values->size; ++i) {
-            if (call->values->values[i]->type != STRING_TYPE) {
-                printf("Invalid argument for func call %s", name);
-                return false;
-            }
-            strcat(tmp, (char*)(call->values->values[i]->data));
-            size += strlen((char*)(call->values->values[i]->data));
+        if (call->values->size == 0) {
+            printf("You are not allowed to not pass arguments to prinln!");
+            return false;
         }
+        if (call->values->values[0]->type != STRING_TYPE) {
+            printf("Invalid argument for func call %s", name);
+            return false;
+        }
+        strcat(tmp, (char*)(call->values->values[0]->data));
+        size += strlen((char*)(call->values->values[0]->data));
         char* tmpToFree = tmp;
         char* res = calloc(512, sizeof(char));
         char* placeholder_location = strstr(tmp, "{");
+        int curIndex = 1;
         while (placeholder_location != NULL) {
             int prefix_length = placeholder_location - tmp + 1;
             char* value = calloc(32, sizeof(char));
@@ -647,19 +684,39 @@ bool doFunc(struct ast* ast, struct command_type* command) {
                 value[i - prefix_length] = tmp[i];
             }
             strncat(res, tmp, prefix_length-1);
-            struct command_type* com = findValue(ast, value);
-            bool isOp = false;
-            for (int i = 0; i < strlen(value); ++i) {
-                if (value[i] == '+' || value[i] == '-' || value[i] == '*' || value[i] == '*') {
-                    isOp = true;
-                    break;
+            char* str;
+            if (!strcmp(value, "")) {
+                free(value);
+                curIndex++;
+                if (call->values->size < curIndex) {
+                    printf("Not enough values for println!");
+                    return false;
+                }
+                struct value_type* val = call->values->values[curIndex - 1];
+                if (val->type == FUNC_TYPE) {
+                    struct command_type* com = (struct command_type*)val->data;
+                    val = getDataFromFunc(ast, (struct func_call_type*)com->command);
+                }
+                str = getStrFromValue(val);
+                if (!str) {
+                    return false;
                 }
             }
-            if (!com) {
-                if (!isOp) printf("Undefined reference to %s", value);
-                return false;
+            else {
+                struct command_type* com = findValue(ast, value);
+                bool isOp = false;
+                for (int i = 0; i < strlen(value); ++i) {
+                    if (value[i] == '+' || value[i] == '-' || value[i] == '*' || value[i] == '*') {
+                        isOp = true;
+                        break;
+                    }
+                }
+                if (!com) {
+                    if (!isOp) printf("Undefined reference to %s", value);
+                    return false;
+                }
+                str = getStrFromValue(getValue(com));
             }
-            char* str = getValFromValueType(getValue(com));
             strcat(res, str); // ошибка когда bool
             tmp += prefix_length + t;
             size -= prefix_length + t;
@@ -715,7 +772,7 @@ bool doFunc(struct ast* ast, struct command_type* command) {
         //     printf("%s\n", mem->name);
         // }
         char* newName = strdup(impl->parametrs->members[i]->name);
-        strcat(newName, "+");
+        strcat(newName, ".");
         struct member_type* mem = createMember(val, impl->parametrs->members[i]->name);
         // printf("%s=%d\n",mem->name, *(int*)mem->value->data);
         struct command_type* com = createCommand(0, MEMBER_COM_TYPE, (void*)mem);
@@ -1271,6 +1328,9 @@ struct ast* createAstToFunc(struct ast* source, struct ast* toDo) {
 
     for (int i = 0; i < toDo->declarations->size; ++i) {
         push_back_com(ast->declarations, toDo->declarations->commands[i]);
+    }
+    for (int i = 0; i < toDo->initializations->size; ++i) {
+        push_back_com(ast->initializations, toDo->initializations->commands[i]);
     }
     for (int i = 0; i < source->functions->size; ++i) {
         push_back_com(ast->functions, source->functions->commands[i]);

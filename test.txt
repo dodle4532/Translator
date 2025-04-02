@@ -1,85 +1,50 @@
-fn factorial(n: u64) -> u64 {
+fn factorial(n: u32) -> u32 {
     if n == 0 {
-        1
+        return 1;
     } else {
-        n * factorial(n - 1)
+        return n * factorial(n - 1);
     }
-}
-
-fn is_prime(n: u32) -> bool {
-    if n <= 1 {
-        return false;
-    }
-    for i in 2..=(n as f32).sqrt() as u32 {
-        if n % i == 0 {
-            return false;
-        }
-    }
-    true
 }
 
 fn fibonacci(n: u32) -> u32 {
     if n <= 1 {
-        n
+        return 1;
     } else {
-        fibonacci(n - 1) + fibonacci(n - 2)
+        return fibonacci(n - 1) + fibonacci(n - 2);
     }
 }
 
 fn main() {
     let number: u32 = 42;
-    println!("The number is: {}", number);
+    println!("The number is: {}\n", number);
 
-    let is_even: bool = number % 2 == 0;
-    println!("Is the number even? {}", is_even);
-
-    let prime_check_num: u32 = 17;
-    println!("Is {} a prime number? {}", prime_check_num, is_prime(prime_check_num));
-
-    let large_number: u64 = 123456789012345;
-    println!("A large number is: {}", large_number);
-
-    let factorial_result: u64 = factorial(10);
-    println!("Factorial of 10 is: {}", factorial_result);
+    let factorial_result: u32 = factorial(5);
+    println!("Factorial of 5 is: {}\n", factorial_result);
 
     let pi: f32 = 3.14159;
-    println!("Pi is approximately: {}", pi);
+    println!("Pi is approximately: {}\n", pi);
 
     let radius: f32 = 5.0;
     let area: f32 = pi * radius * radius;
-    println!("Area of a circle with radius {} is: {}", radius, area);
+    println!("Area of a circle with radius {} is: {}\n", radius, area);
 
     let is_true: bool = true;
     let is_false: bool = false;
-    println!("Is true? {}", is_true);
-    println!("Is false? {}", is_false);
+    println!("Is true? {}\n", is_true);
+    println!("Is false? {}\n", is_false);
 
-    let and_result: bool = is_true && is_false;
-    let or_result: bool = is_true || is_false;
-    let not_result: bool = !is_true;
-    println!("true && false: {}", and_result);
-    println!("true || false: {}", or_result);
-    println!("!true: {}", not_result);
+    let str1: str = "123";
+    let str2: str = "456";
+    println!("'{str1}'+'{str2}' = {str1+str2}\n");
 
-    let message: str = string_operations();
-    println!("{}", message);
-
-    let name: &str = "Rustacean";
-    let greeting: str = format!("Hello, {}!", name);
-    println!("{}", greeting);
-
-    let fib_number: u32 = 10;
-    println!("The {}th Fibonacci number is: {}", fib_number, fibonacci(fib_number));
-
-    for i in 1..=5 {
-        if i % 2 == 0 {
-            println!("{} is even", i);
-        } else {
-            println!("{} is odd", i);
-        }
+    for i in 1..5 {
+        let b : u32 = i;
+        println!("The {}th Fibonacci number is: {}\n", b, fibonacci(b));
     }
-
-    let combined_result: f32 = factorial_result as f32 / 100.0 + pi;
-    println!("Combined result: {}", combined_result);
-
+    let a : u32 = 0;
+    while a < 10 {
+        println!("{a} ");
+        a = a + 2;
+    }
+    println!("\n");
 }

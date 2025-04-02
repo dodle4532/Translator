@@ -10,6 +10,7 @@
   void yyerror (char *s);
   extern struct ast* ast;
   int num = 1;
+  bool isFunc = false;
   enum VALUE_TYPE getValueType(char* val) {
       if (val == NULL) {
         return NULL_TYPE;
@@ -78,7 +79,7 @@
 
 %type <com> command declaration initialization if_expression functionCall function while_expression for_expression
 %type <str> type cmp returnArrow
-%type <_val> val expr second assignment init ret returnVal
+%type <_val> val expr second assignment init returnVal
 %type <memb> par
 %type <valVec> value  
 %type <membVec> parametrs
@@ -138,9 +139,9 @@ functionCall:
 
 value:
   %empty        {$$ = createValueVec();}
-| val           {$$ = createValueVec();
+| expr           {$$ = createValueVec();
                  push_back_val($$, $1);}
-| val ',' value {$$ = createValueVec();
+| expr ',' value {$$ = createValueVec();
                  push_back_val($$, $1);
                  for(int i = 0; i < $3->size; ++i) {
                   push_back_val($$, $3->values[i]);
@@ -185,8 +186,8 @@ val:
 ;
 
 function:
-  FN WORD '(' parametrs ')' returnArrow '{' functionImplementation ret '}' { struct func_impl_type* res = createFuncImpl($2, $4, $8, 
-                                                                             $9); res->wantedReturnType = getValueType($6); free($6);
+  FN WORD '(' parametrs ')' returnArrow '{' functionImplementation '}' { isFunc = true;struct func_impl_type* res = createFuncImpl($2, $4, $8, 
+                                                                             NULL); res->wantedReturnType = getValueType($6); free($6);
                                                                           $$ = createCommand(num++, FUNC_IMPL_TYPE, (void*)res);}
 ;
 
@@ -198,11 +199,6 @@ returnArrow:
 functionImplementation:
   funcImpl                        { $$ = $1;}
 | funcImpl functionImplementation { $$ = mergeAst($1, $2);}
-;
-
-ret:
-  RETURN returnVal ';' {$$ = $2;}
-| %empty {$$ = createValue(NULL_TYPE, NULL);}
 ;
 
 returnVal:
@@ -217,6 +213,8 @@ funcImpl:
 | if_expression {$$ = createAst(); push_back_com($$->if_expressions, $1);}
 | while_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
 | for_expression {$$ = createAst(); push_back_com($$->cycles, $1);}
+| RETURN returnVal ';' {$$ = createAst(); char* str = calloc(4, sizeof(char)); sprintf(str, "%d", num);
+                        push_back_com($$->declarations, createCommand(num++, RETURN_TYPE, createMember($2, str)));}
 ;
 
 brackets_functionImplementation:
@@ -272,7 +270,7 @@ expr:
 ;
 
 second:
-  val '*' second {$$ = getOp($1, $3, '*'); if ($$ == NULL) {;YYABORT;}}
+  val '*' second {$$ = getOp($1, $3, '*'); if ($$ == NULL) {YYABORT;}}
 | val '/' second {$$ = getOp($1, $3, '/'); if ($$ == NULL) {YYABORT;}}
 | val            {$$ = $1;}
 ;
@@ -281,4 +279,5 @@ second:
 
 void yyerror(char *s) {
   fprintf(stderr, "error: %s\n", s);
+  printf("%d\n", num);
 }

@@ -122,6 +122,7 @@ struct ast* createAst() {
     _ast->functions = createCommandVec();
     _ast->if_expressions = createCommandVec();
     _ast->cycles = createCommandVec();
+    _ast->returnValue = NULL;
     return _ast;
 }
 

@@ -10,7 +10,7 @@ enum VALUE_TYPE
     INTEGER_TYPE,
     BOOLEAN_TYPE,
     NULL_TYPE,
-    FUNC_TYPE
+    FUNC_TYPE,
 };
 
 enum COMMAND_TYPE
@@ -21,7 +21,8 @@ enum COMMAND_TYPE
     IF_COM_TYPE,
     CYCLE_COM_TYPE,
     FUNC_CALL_TYPE,
-    FUNC_IMPL_TYPE
+    FUNC_IMPL_TYPE,
+    RETURN_TYPE
 };
 
 struct value_type
@@ -99,6 +100,7 @@ struct ast {
     struct command_vec* functions;
     struct command_vec* if_expressions;
     struct command_vec* cycles;
+    struct value_type* returnValue;
 };
 
 const char* getStrFromValueType(enum VALUE_TYPE type);

@@ -39,7 +39,7 @@
 ".."  {return TWO_POINTS;}
 "->"  {return ARROW;}
 "\""  {return QUOTE;}
-[a-zA-Z][a-zA-Z0-9!]* {yylval.str = strdup(yytext); return WORD;}
+[a-zA-Z][a-zA-Z0-9!_]* {yylval.str = strdup(yytext); return WORD;}
 ":"      {return ':';}
 "+"      {return '+';}
 "-"      {return '-';}

@@ -4,6 +4,9 @@
 #include <string.h>
 #include <ctype.h>
 
+bool isInFunc = false;
+struct value_type* returnValue;
+
 // В for i работает как переменная, а не должна
 
 struct command_vec* helpCommandVec;
@@ -63,7 +66,6 @@ struct command_vec* sortAst(struct ast* ast) {
     for (int i = 0; i < ast->if_expressions->size; ++i) {
         push_back_com(res, ast->if_expressions->commands[i]);
     }
-
     quickSort(res->commands, 0, res->size-1);
     return res;
 }
@@ -84,11 +86,64 @@ struct command_type* findValue(struct ast* ast, char* name) {
     for (int i = 0; i < strlen(name) - 1; ++i) {
         if (name[i] == '+' || name[i] == '-' || name[i] == '*' || name[i] == '*') {
             isOp = true;
+            break;
         }
     } 
+    struct value_type* val = NULL;
+    struct member_type* mem = createMember(createValue(OBJECT_TYPE, name), name);
     if (isOp) {
-        struct member_type* mem = createMember(createValue(OBJECT_TYPE, name), name);
-        struct value_type* val = getDataFromObject(ast, mem);
+        mem = createMember(createValue(OBJECT_TYPE, name), name);
+        val = getDataFromObject(ast, mem);
+        if (!val) {
+            return NULL;
+        }
+        mem->value = val;
+        return createCommand(0, MEMBER_COM_TYPE, mem);
+    }
+    bool isFunc = false;
+    int count = 0; // Запятые
+    for (int i = 0; i < strlen(name); ++i) {
+        if (name[i] == '(') {
+            isFunc = true;
+        }
+        if (name[i] == ',') {
+            count++;
+        }
+    }
+    if (isFunc) {
+        struct value_vec* values = createValueVec();
+        char* funcName = calloc(32, sizeof(char));
+        char* value = calloc(32, sizeof(char));
+        int index = 0;
+        bool isPar = false;
+        while (index < strlen(name)) {
+            if (name[index] == '(') {
+                isPar = true;
+                index++;
+                continue;
+            }
+            if (name[index] == ',') {
+                push_back_val(values, getValueFromStr(value));
+                free(value);
+                value = calloc(32, sizeof(char));
+                index++;
+                continue;
+            }
+            if (name[index] == ')') {
+                if (value) push_back_val(values, getValueFromStr(value));
+                free(value);
+                break;
+            }
+            if (!isPar) {
+                funcName[index] = name[index]; 
+            }
+            else {
+                value[strlen(value)] = name[index];
+            }
+            index++;
+        }
+        struct func_call_type* call = createFuncCall(funcName, values);
+        val = getDataFromFunc(ast, call);
         if (!val) {
             return NULL;
         }
@@ -97,14 +152,15 @@ struct command_type* findValue(struct ast* ast, char* name) {
     }
     char* newName = strdup(name);
     strcat(newName, "+");
-    for (int i = 0; i < ast->declarations->size; ++i) {
+    for (int i = ast->declarations->size - 1; i >= 0 ; i-=1) {
         struct member_type* mem = ast->declarations->commands[i]->command;
         // printf("%s\n", mem->name);
         if (!strcmp(newName, mem->name)) {
             return ast->declarations->commands[i];
         }
     }
-    for (int i = 0; i < ast->declarations->size; ++i) {
+    //int i = 0; i < ast->declarations->size; ++i
+    for (int i = ast->declarations->size - 1; i >= 0 ; i-=1) {
         struct member_type* mem = ast->declarations->commands[i]->command;
         if (!strcmp(name, mem->name)) {
             return ast->declarations->commands[i];
@@ -193,17 +249,34 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
             // free(left->data);
             // left->data = NULL;
         }
-        if (left->type == FLOAT_TYPE) {
+        else if (left->type == FLOAT_TYPE) {
             l1 = calloc(32,sizeof(char));
             sprintf(l1, "%f", *(float*)left->data);
             // free(left->data);
             // left->data = NULL;
         }
+        else if (left->type == STRING_TYPE) {
+            char* tmp = calloc(32, sizeof(char));
+            strcat(tmp, "'");
+            strcat(tmp, l1);
+            strcat(tmp, "'");
+            free(l1);
+            l1 = tmp;
+        }
+        else if (left->type == FUNC_TYPE) {
+            l1 = calloc(32, sizeof(char));
+            struct command_type* com = (struct command_type*)left->data;
+            struct func_call_type* call = (struct func_call_type*)com->command;
+            strcat(l1, call->name);
+            strcat(l1, "(");
+            for (int i = 0; i < call->values->size; ++i) {
+                if (i > 0) strcat(l1, ",");
+                strcat(l1, getStrFromValue(call->values->values[i]));
+            }
+            strcat(l1, ")");
+        }
         else {
             l1 = (char*)left->data;
-            if (left->type == STRING_TYPE) {
-                strcat("'", l1);
-            }
         }
         if (right->type == INTEGER_TYPE) {
             l2 = calloc(32,sizeof(char));
@@ -217,16 +290,121 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
             // free(right->data);
             // right->data = NULL;
         }
+        else if (right->type == STRING_TYPE) {
+            char* tmp = calloc(32, sizeof(char));
+            strcat(tmp, "'");
+            strcat(tmp, l2);
+            strcat(tmp, "'");
+            free(l2);
+            l2 = tmp;
+        }
+        else if (right->type == FUNC_TYPE) {
+            l2 = calloc(32, sizeof(char));
+            struct command_type* com = (struct command_type*)right->data;
+            struct func_call_type* call = (struct func_call_type*)com->command;
+            strcat(l2, call->name);
+            strcat(l2, "(");
+            for (int i = 0; i < call->values->size; ++i) {
+                if (i > 0)  strcat(l2, ",");
+                strcat(l2, getStrFromValue(call->values->values[i]));
+            }
+            strcat(l2, ")");
+        }
         else {
             l2 = (char*)right->data;
-            if (right->type == STRING_TYPE) {
-                char* tmp = calloc(32, sizeof(char));
-                strcat(tmp, "'");
-                strcat(tmp, l2);
-                strcat(tmp, "'");
-                free(l2);
-                l2 = tmp;
+        }
+        val->type = OBJECT_TYPE;
+        char* o = calloc(1, sizeof(char));
+        o[0] = op;
+        strcat(l1, o); strcat(l1, l2); 
+        free(o);
+        val->data = l1;
+        free(l2);
+        return val;
+    }
+    if (left->type == STRING_TYPE && left->type == STRING_TYPE && op == '+') {
+        strcat((char*) left->data, (char*)right->data);
+        val->type = STRING_TYPE;
+        val->data = strdup((char*)left->data);
+        // free(right->data);
+        // free(right);
+        // free(left->data);
+        // free(left);
+        return val;
+    }
+    if (left->type == FUNC_TYPE || right->type == FUNC_TYPE) {
+        char* l1;
+        char* l2;
+        if (left->type == INTEGER_TYPE) {
+            l1 = calloc(32,sizeof(char));
+            sprintf(l1, "%d", *(int*)left->data);
+            // free(left->data);
+            // left->data = NULL;
+        }
+        else if (left->type == FLOAT_TYPE) {
+            l1 = calloc(32,sizeof(char));
+            sprintf(l1, "%f", *(float*)left->data);
+            // free(left->data);
+            // left->data = NULL;
+        }
+        else if (left->type == FUNC_TYPE) {
+            l1 = calloc(32, sizeof(char));
+            struct command_type* com = (struct command_type*)left->data;
+            struct func_call_type* call = (struct func_call_type*)com->command;
+            strcat(l1, call->name);
+            strcat(l1, "(");
+            for (int i = 0; i < call->values->size; ++i) {
+                if (i > 0) strcat(l1, ",");
+                strcat(l1, getStrFromValue(call->values->values[i]));
             }
+            strcat(l1, ")");
+        }
+        else if (left->type == STRING_TYPE) {
+            char* tmp = calloc(32, sizeof(char));
+            strcat(tmp, "'");
+            strcat(tmp, l1);
+            strcat(tmp, "'");
+            free(l1);
+            l1 = tmp;
+        }
+        else {
+            l1 = (char*)left->data;
+            
+        }
+        if (right->type == INTEGER_TYPE) {
+            l2 = calloc(32,sizeof(char));
+            sprintf(l2, "%d", *(int*)right->data);
+            // free(right->data);
+            // right->data = NULL;
+        }
+        else if (right->type == FLOAT_TYPE) {
+            l2 = calloc(32,sizeof(char));
+            sprintf(l2, "%f", *(float*)right->data);
+            // free(right->data);
+            // right->data = NULL;
+        }
+        else if (right->type == STRING_TYPE) {
+            char* tmp = calloc(32, sizeof(char));
+            strcat(tmp, "'");
+            strcat(tmp, l2);
+            strcat(tmp, "'");
+            free(l2);
+            l2 = tmp;
+        }
+        else if (right->type == FUNC_TYPE) {
+            l2 = calloc(32, sizeof(char));
+            struct command_type* com = (struct command_type*)right->data;
+            struct func_call_type* call = (struct func_call_type*)com->command;
+            strcat(l2, call->name);
+            strcat(l2, "(");
+            for (int i = 0; i < call->values->size; ++i) {
+                if (i > 0)  strcat(l2, ",");
+                strcat(l2, getStrFromValue(call->values->values[i]));
+            }
+            strcat(l2, ")");
+        }
+        else {
+            l2 = (char*)right->data;
         }
         val->type = OBJECT_TYPE;
         char* o = calloc(1, sizeof(char));
@@ -254,16 +432,6 @@ struct value_type* getOp(struct value_type* left, struct value_type* right, char
     //     free(val);
     //     return NULL;
     // }
-    if (left->type == STRING_TYPE && left->type == STRING_TYPE && op == '+') {
-        strcat((char*) left->data, (char*)right->data);
-        val->type = STRING_TYPE;
-        val->data = strdup((char*)left->data);
-        // free(right->data);
-        // free(right);
-        // free(left->data);
-        // free(left);
-        return val;
-    }
     // if (left->data != NULL) {
     //   free(left->data);
     // }
@@ -374,13 +542,33 @@ struct value_type* getValueFromStr(char* str) {
     return result;
 }
 bool fillData(struct ast* ast, struct value_type* res, char* leftVal, char* rightVal, char op) {
-    struct command_type* leftCom = findValue(ast, leftVal);
-    if (!leftCom) {
-        printf("%s not found", leftVal);
-        return false;
+    struct value_type* left = getValueFromStr(leftVal);
+    if (left->type == OBJECT_TYPE) {
+        struct command_type* leftCom = findValue(ast, leftVal);
+        if (!leftCom) {
+            printf("%s not found", leftVal);
+            return false;
+        }
+        struct member_type* leftMem = (struct member_type*)leftCom->command;
+        if (leftMem->value->type == OBJECT_TYPE) {
+            // for (int i = 0; i < ast->declarations->size; ++i) {
+            //     struct member_type* mem = (struct member_type*)ast->declarations->commands[i]->command;
+            //     printf("%s %d\n", mem->name, mem->value->data); 
+            // }
+            leftMem->value = getDataFromObject(ast, leftMem);
+        }
+        left->data = leftMem->value->data;
+        left->type = leftMem->value->type;
+        // printData(left);
     }
-    struct member_type* leftMem = (struct member_type*)leftCom->command;
-    struct value_type* left = leftMem->value;
+    if (left->type == FUNC_TYPE) {
+        struct command_type* leftCom = (struct command_type*)left->data;
+        struct func_call_type* call = (struct func_call_type*)leftCom->command;
+        left = getDataFromFunc(ast, call);
+        if (!left) {
+            return false;
+        }
+    }
     if (rightVal == NULL || rightVal[0] == 0) {
         if (res->type == NULL_TYPE) {
             res->type = left->type;
@@ -435,10 +623,6 @@ struct value_type* getDataFromFunc(struct ast* ast, struct func_call_type* call)
     }
     if (!isFind) {
         printf("Implementation of funciton %s not found", name);
-        return NULL;
-    }
-    if (impl->returnValue->type == NULL_TYPE) {
-        printf("Trying to sign void function %s to value", impl->name);
         return NULL;
     }
     struct ast* mergedAst = createAstToFunc(ast, impl->impl);
@@ -520,33 +704,49 @@ struct value_type* getDataFromFunc(struct ast* ast, struct func_call_type* call)
         // free_value_vec(tmp);
         // free_value_vec(newParametrs);
     }
+    isInFunc = true;
     if (!doAst(mergedAst)) {
         return NULL;
     }
-    if (impl->returnValue->type != OBJECT_TYPE) {
-        if (impl->returnValue->type != impl->wantedReturnType) {
-            printf("Trying to return %s, but needed %s", getStrFromValueType(impl->returnValue->type),
+    if (returnValue == NULL) {
+        printf("Trying to sign void function %s to value", impl->name);
+        return NULL;
+    }
+    if (returnValue->type != OBJECT_TYPE) {
+        if (returnValue->type != impl->wantedReturnType) {
+            printf("Trying to return %s, but needed %s", getStrFromValueType(returnValue->type),
                                                          getStrFromValueType(impl->wantedReturnType));
+            isInFunc = false;
             return NULL;
         }
-        return impl->returnValue;
+        isInFunc = false;
+        struct value_type* res = returnValue;
+        returnValue = NULL;
+        return res;
     }
-    struct command_type* com = findValue(mergedAst, impl->returnValue->data);
+    struct command_type* com = findValue(mergedAst, returnValue->data);
     if (!com) {
-        printf("Return value %s not found", impl->returnValue->data);
+        printf("Return value %s not found", returnValue->data);
+        isInFunc = false;
         return NULL;
     }
     struct value_type* res = getValue(com);
     if (res->type != impl->wantedReturnType) {
         printf("Trying to return %s, but needed %s", getStrFromValueType(res->type),
                                                      getStrFromValueType(impl->wantedReturnType));
+        isInFunc = false;
         return NULL;
     }
+    isInFunc = false;
+    returnValue = NULL;
     return res;
 }
 
 bool transformAst(struct ast* ast) {
     for (int i = 0; i < ast->declarations->size; ++i) {
+        if (ast->declarations->commands[i]->type == RETURN_TYPE) {
+            continue;
+        }
         struct member_type* mem1 = ast->declarations->commands[i]->command;
         for (int j = i + 1; j < ast->declarations->size; ++j) {
             struct member_type* mem2 = ast->declarations->commands[j]->command;
@@ -555,32 +755,35 @@ bool transformAst(struct ast* ast) {
                 return false;
             }
         }
-        if (mem1->value->type == OBJECT_TYPE) {
-            // printData(mem1->value);
-            struct value_type* val = getDataFromObject(ast, mem1);
-            if (val == NULL) {
-                return false;
-            }
-            free(mem1->value);
-            mem1->value = val;
-            // printData(mem1->value);
-        }
-        if (mem1->value->type == FUNC_TYPE) {
-            struct command_type* com = mem1->value->data;
-            struct func_call_type* call = (struct func_call_type*)com->command;
-            struct value_type* val = getDataFromFunc(ast, call);
-            if (!val) {
-                return false;
-            }
-            free(mem1->value->data);
-            mem1->value->data = val->data;
-            mem1->value->type = val->type;
-        }
-        if (mem1->wantedType != mem1->value->type && mem1->wantedType != NULL_TYPE) {
-            printf("Trying to sign %s to %s in initializtion of %s", getStrFromValueType(mem1->value->type),
-                                                                     getStrFromValueType(mem1->wantedType), mem1->name);
-            return false;
-        }
+        // if (mem1->value->type == OBJECT_TYPE) {
+        //     // printData(mem1->value);
+        //     struct value_type* val = getDataFromObject(ast, mem1);
+        //     if (val == NULL) {
+        //         return false;
+        //     }
+        //     // printData(val);
+        //     // free(mem1->value);
+        //     mem1->value->data = val->data;
+        //     mem1->value->type = val->type;
+        //     // printData(mem1->value);
+        //     // printData(mem1->value);
+        // }
+        // else if (mem1->value->type == FUNC_TYPE) {
+        //     struct command_type* com = mem1->value->data;
+        //     struct func_call_type* call = (struct func_call_type*)com->command;
+        //     struct value_type* val = getDataFromFunc(ast, call);
+        //     if (!val) {
+        //         return false;
+        //     }
+        //     free(mem1->value->data);
+        //     mem1->value->data = val->data;
+        //     mem1->value->type = val->type;
+        // }
+        // if (mem1->wantedType != mem1->value->type && mem1->wantedType != NULL_TYPE) {
+        //     printf("Trying to sign %s to %s in initializtion of %s", getStrFromValueType(mem1->value->type),
+        //                                                              getStrFromValueType(mem1->wantedType), mem1->name);
+        //     return false;
+        // }
     }
     for (int i = 0; i < ast->initializations->size; ++i) {
         bool isFind = false;
@@ -604,7 +807,7 @@ bool transformAst(struct ast* ast) {
 
 char* getStrFromValue(struct value_type* val) {
     if (val->type == NULL_TYPE || val->type == STRING_TYPE || val->type == OBJECT_TYPE) {
-      return strdup((char*)val->data);
+        return strdup((char*)val->data);
     } 
     if (val->type == INTEGER_TYPE) {
         char* res = calloc(16, sizeof(char));
@@ -697,6 +900,12 @@ bool doFunc(struct ast* ast, struct command_type* command) {
                     struct command_type* com = (struct command_type*)val->data;
                     val = getDataFromFunc(ast, (struct func_call_type*)com->command);
                 }
+                if (!val) {
+                    return false;
+                }
+                if (val->type == OBJECT_TYPE) {
+                    val = getDataFromObject(ast, createMember(val, ""));
+                }
                 str = getStrFromValue(val);
                 if (!str) {
                     return false;
@@ -715,7 +924,11 @@ bool doFunc(struct ast* ast, struct command_type* command) {
                     if (!isOp) printf("Undefined reference to %s", value);
                     return false;
                 }
-                str = getStrFromValue(getValue(com));
+                struct value_type* val = getValue(com);
+                if (val->type == OBJECT_TYPE) {
+                    val = getDataFromObject(ast, createMember(val, ""));
+                }
+                str = getStrFromValue(val);
             }
             strcat(res, str); // ошибка когда bool
             tmp += prefix_length + t;
@@ -747,7 +960,7 @@ bool doFunc(struct ast* ast, struct command_type* command) {
     // }
     struct ast* mergedAst = createAstToFunc(ast, impl->impl);
     if (impl->parametrs->size != call->values->size) {
-        printf("Incorrect number of arguments in function call %s, should be %d, but there is %d\n",
+        printf("Incorrect number of arguments in function call %s, should be %d, but there is %d",
                 impl->name, impl->parametrs->size, call->values->size);
         return false;
     }
@@ -824,7 +1037,10 @@ bool doFunc(struct ast* ast, struct command_type* command) {
         // free_value_vec(tmp);
         // free_value_vec(newParametrs);
     }
-    return doAst(mergedAst);
+    isInFunc = true;
+    bool res = doAst(mergedAst);
+    isInFunc = false;
+    return res;
 }
 
 struct value_type* getValueFromIfCond(struct ast* ast, struct value_type* val) { // Попробовать использовать в doFunc
@@ -993,14 +1209,29 @@ bool doCycle(struct ast* ast, struct command_type* com) {
         printf(": Right value in if cond not found");
         return false;
     }
+    struct value_type* values[cycle->body->declarations->size];
+    for (int i = 0; i < cycle->body->declarations->size; ++i) {
+        struct member_type* mem = cycle->body->declarations->commands[i]->command;
+        if (mem->value->type == OBJECT_TYPE) {
+            values[i] = createValue(OBJECT_TYPE, strdup((char*)mem->value->data));
+        } 
+    }
     int res = checkExpression(leftVal, rightVal, cycle->expr->cmpChar);
     while (res != 0) {
         if (res == -1) {
             return false;
         }
+        // struct member_type* mem = ast->declarations->commands[0]->command;
+        // printf("\n%s %d\n", mem->name, *(int*)mem->value->data);
         struct ast* mergedAst = createAstToDoWVal(ast, cycle->body, com->num);
         if (!doAst(mergedAst)) {
             return false;
+        }
+        for (int i = 0; i < cycle->body->declarations->size; ++i) {
+            struct member_type* mem = cycle->body->declarations->commands[i]->command;
+            if (values[i]->type == OBJECT_TYPE) {
+                mem->value = createValue(OBJECT_TYPE, strdup((char*)values[i]->data));
+            } 
         }
         res = checkExpression(leftVal, rightVal, cycle->expr->cmpChar);
     }
@@ -1032,16 +1263,53 @@ struct value_type* getDataFromObject(struct ast* ast, struct member_type* mem) {
     char* rightVal = calloc(64, sizeof(char));
     char op = 0;
     bool isLeft = true;
-    while (index < strlen(data)) {
-        if (data[index] == '+' || data[index] == '-' || data[index] == '*' || data[index] == '*') {
-            op = data[index];
+    bool isInBrackets = false;
+    char* bracketsValue = calloc(16, sizeof(char));
+    while (index < strlen(data)) { // for
+        if (data[index] == '(') {
+            isInBrackets = true;
+            index++;
+            continue;
+        }
+        if (data[index] == ')') {
+            isInBrackets = false;
+            struct value_type* val = getValueFromStr(bracketsValue);
+            if (val->type == OBJECT_TYPE) {
+                val = getDataFromObject(ast, createMember(val, ""));
+            }
+            char *value = getStrFromValue(val);
+            if (!value) {
+                return NULL;
+            }
+            if (isLeft) {
+                strcat(leftVal, "(");
+                strcat(leftVal, value);
+                strcat(leftVal, ")");
+            }
+            else {
+                strcat(rightVal, "(");
+                strcat(rightVal, value);
+                strcat(rightVal, ")");
+            }
+            free(bracketsValue);
+            bracketsValue = calloc(16, sizeof(char));
+            index++;
+            continue;
+        }
+        if (!isInBrackets && (data[index] == '+' || data[index] == '-' || data[index] == '*' || data[index] == '*')) {
             isLeft = false;
             if (!fillData(ast, res, leftVal, rightVal, op)) {
                 return NULL;
             }
+            op = data[index];
             index++;
             free(rightVal);
             rightVal = calloc(64, sizeof(char));
+            continue;
+        }
+        if (isInBrackets) {
+            bracketsValue[strlen(bracketsValue)] = data[index];
+            index++;
             continue;
         }
         if (isLeft) {
@@ -1055,6 +1323,7 @@ struct value_type* getDataFromObject(struct ast* ast, struct member_type* mem) {
     if (!fillData(ast, res, leftVal, rightVal, op)) {
         return NULL;
     }
+    // printData(res);
     return res;
 }
 
@@ -1077,10 +1346,13 @@ bool doInit(struct ast* ast, struct command_type* command) {
         getStrFromValueType(val->type), num);
         return false;
     }
+    // printData(val);
     if (val->data != finalValue->data) {
         // free(val->data);
         val->data = finalValue->data;
     }
+    // printData(val);
+    // printData(mem->value);
     return true;
 }
 
@@ -1099,6 +1371,10 @@ bool doCommand(struct ast* ast, struct command_type* com) {
         return doCycle(ast, com);
     case INIT_COM_TYPE:
         return doInit(ast, com);
+    case RETURN_TYPE:
+        struct member_type* mem = (struct member_type*)com->command;
+        returnValue = mem->value;
+        return true;
     // case MEMBER_COM_TYPE:
     //     struct member_type* mem = com->command;
     //     printData(mem->value);
@@ -1109,6 +1385,14 @@ bool doCommand(struct ast* ast, struct command_type* com) {
 }
 
 bool doAst(struct ast* ast) { // void
+    struct value_type* startValue = returnValue;
+    int size = ast->declarations->size;
+    void* datas[size];
+    enum VALUE_TYPE types[size];
+    for (int i = 0; i < ast->declarations->size; ++i) {
+        struct member_type* mem = (struct member_type*)ast->declarations->commands[i]->command;
+        // printf("%s ", mem->name); printData(mem->value);
+    }
     if (!transformAst(ast)) {
         return false;
     }
@@ -1117,7 +1401,17 @@ bool doAst(struct ast* ast) { // void
         if(!doCommand(ast, vec->commands[i])) {
             return false;
         }
+        if (isInFunc) {
+            if (returnValue != startValue) {
+                return true;
+            }
+        }
     }
+    // for (int i = 0; i < ast->declarations->size; ++i) {
+    //     struct member_type* mem = (struct member_type*)ast->declarations->commands[i]->command;
+    //     mem->value->data = datas[i];
+    //     mem->value->type = types[i];
+    // }
     return true;
 }
 

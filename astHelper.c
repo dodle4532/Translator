@@ -928,6 +928,14 @@ bool doFunc(struct ast* ast, struct command_type* command) {
                 if (val->type == OBJECT_TYPE) {
                     val = getDataFromObject(ast, createMember(val, ""));
                 }
+                else if (val->type == FUNC_TYPE) {
+                    struct command_type* com = val->data;
+                    struct func_call_type* call = com->command;
+                    val = getDataFromFunc(ast, call);
+                }
+                if (val == NULL) {
+                    return false;
+                }
                 str = getStrFromValue(val);
             }
             strcat(res, str); // ошибка когда bool

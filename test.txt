@@ -37,8 +37,8 @@ fn main() {
     let str2: str = "456";
     println!("'{str1}'+'{str2}' = {str1+str2}\n");
 
-    for i in 1..5 {
-        let b : u32 = i;
+    for i in 0..4 {
+        let b : u32 = i+1;
         println!("The {}th Fibonacci number is: {}\n", b, fibonacci(b));
     }
     let a : u32 = 0;

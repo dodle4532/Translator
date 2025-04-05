@@ -8,7 +8,7 @@
   #include "astHelper.h"
   int yylex (void);
   void yyerror (char *s);
-  extern struct ast* ast;
+  extern struct ast* globalAst;
   int num = 1;
   bool isFunc = false;
   enum VALUE_TYPE getValueType(char* val) {
@@ -95,13 +95,13 @@ input:
 ;
 
 command:
-  declaration {push_back_com(ast->declarations, $1);}
-| initialization {push_back_com(ast->initializations, $1);}
-| functionCall ';' {push_back_com(ast->functionCalls, $1);}
-| function {push_back_com(ast->functions, $1);}
-| if_expression {push_back_com(ast->if_expressions, $1);}
-| while_expression {push_back_com(ast->cycles, $1);}
-| for_expression {push_back_com(ast->cycles, $1);}
+  declaration {push_back_com(globalAst->declarations, $1);}
+| initialization {push_back_com(globalAst->initializations, $1);}
+| functionCall ';' {push_back_com(globalAst->functionCalls, $1);}
+| function {push_back_com(globalAst->functions, $1);}
+| if_expression {push_back_com(globalAst->if_expressions, $1);}
+| while_expression {push_back_com(globalAst->cycles, $1);}
+| for_expression {push_back_com(globalAst->cycles, $1);}
 ;
 
 declaration:

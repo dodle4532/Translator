@@ -2,10 +2,10 @@
 
 typedef enum {false, true} bool;
 
-enum VALUE_TYPE
+enum VALUE_TYPE // Тип value
 {
     STRING_TYPE,
-    OBJECT_TYPE,
+    OBJECT_TYPE, //Объект - переменная, в жанных которой хранится то, что надо будет потом посчитать, например "a+1"
     FLOAT_TYPE,
     INTEGER_TYPE,
     BOOLEAN_TYPE,
@@ -13,7 +13,7 @@ enum VALUE_TYPE
     FUNC_TYPE,
 };
 
-enum COMMAND_TYPE
+enum COMMAND_TYPE // Тип команды
 {
     VALUE_COM_TYPE,
     MEMBER_COM_TYPE,
@@ -25,37 +25,37 @@ enum COMMAND_TYPE
     RETURN_TYPE
 };
 
-struct value_type
+struct value_type // value
 {
 	enum VALUE_TYPE type;
 	void *data;
 };
 
-struct member_type
+struct member_type // Переменная (value+имя)
 {
 	char *name;
 	struct value_type *value;
     enum VALUE_TYPE wantedType;
 };
 
-struct value_vec {
+struct value_vec { // Вектор value
     struct value_type** values;
     size_t size;
     size_t capacity;
 };
 
-struct member_vec {
+struct member_vec { // Вектор переменных
     struct member_type** members;
     size_t size;
     size_t capacity;
 };
 
-struct func_call_type {
+struct func_call_type { // Вызов функции
 	char* name;
 	struct value_vec* values;
 };
 
-struct func_impl_type {
+struct func_impl_type { // Объявление функции
 	char* name;
 	struct member_vec* parametrs;
 	struct ast* impl;
@@ -63,37 +63,37 @@ struct func_impl_type {
     enum VALUE_TYPE wantedReturnType;
 };
 
-struct if_cond_type {
+struct if_cond_type { // Условие if
 	char* cmpChar;
 	struct value_type* leftVal;
 	struct value_type* rightVal;
 };
 
-struct if_expr_type {
+struct if_expr_type { // if
 	struct if_cond_type* cond;
 	struct ast* body;
 	struct if_expr_type* _else;
 };
 
-struct cycle_type {
+struct cycle_type { // Цикл
     struct if_cond_type* expr;
     struct ast* body;
     struct member_type* par; // NULL когда while и i = 0 когда for
 };
 
-struct command_type {
+struct command_type { // Команда - содержит что-то из того, что описано выше
 	enum COMMAND_TYPE type;
     int num;
 	void* command;
 };
 
-struct command_vec {
+struct command_vec { // Вектор команд
 	struct command_type** commands;
     size_t size;
     size_t capacity;
 };
 
-struct ast {
+struct ast { // Дерево программы или подпрограммы
     struct command_vec* declarations;
     struct command_vec* initializations;
     struct command_vec* functionCalls;
@@ -103,7 +103,6 @@ struct ast {
     struct value_type* returnValue;
 };
 
-const char* getStrFromValueType(enum VALUE_TYPE type);
 struct value_type* createValue(enum VALUE_TYPE type, void* data); 
 struct member_type* createMember(struct value_type* val, char* name);
 struct command_type* createCommand(int num, enum COMMAND_TYPE type, void* command);

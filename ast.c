@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern struct ast* g_astCont[2048];
+extern int g_astContSize; 
+
 const char* getStrFromValueType(enum VALUE_TYPE type) {
     switch (type)
     {
@@ -99,7 +102,7 @@ struct value_vec* createValueVec() {
 
 struct command_vec* createCommandVec() {
     struct command_vec* com = calloc(1, sizeof(struct command_vec));
-    com->commands = calloc(128, sizeof(struct command_type*)); // попробовать 4
+    com->commands = calloc(4, sizeof(struct command_type*));
     com->size = 0;
     com->capacity = 4;
     return com;
@@ -116,6 +119,7 @@ struct func_call_type* createFuncCall(char* name, struct value_vec* values) {
 
 struct ast* createAst() {
     struct ast* _ast = calloc(1, sizeof(struct ast));
+    g_astCont[g_astContSize++] = _ast;
     _ast->declarations = createCommandVec();
     _ast->initializations = createCommandVec();
     _ast->functionCalls = createCommandVec();
@@ -128,13 +132,8 @@ struct ast* createAst() {
 
 void push_back_mem(struct member_vec* mem, struct member_type* member) {
     if (mem->size == mem->capacity) {
-        // Необходимо увеличить вместимость
         size_t new_capacity = mem->capacity * 2;
         struct member_type** new_data = (struct member_type**)realloc(mem->members, new_capacity * sizeof(struct member_type*));
-        if (new_data == NULL) {
-            fprintf(stderr, "Ошибка перевыделения памяти для данных вектора\n");
-            return; // Indicate failure
-        }
         mem->members = new_data;
         mem->capacity = new_capacity;
     }
@@ -146,13 +145,8 @@ void push_back_mem(struct member_vec* mem, struct member_type* member) {
 
 void push_back_val(struct value_vec* val, struct value_type* value) {
     if (val->size == val->capacity) {
-        // Необходимо увеличить вместимость
         size_t new_capacity = val->capacity * 2;
         struct value_type** new_data = (struct value_type**)realloc(val->values, new_capacity * sizeof(struct value_type*));
-        if (new_data == NULL) {
-            fprintf(stderr, "Ошибка перевыделения памяти для данных вектора\n");
-            return; // Indicate failure
-        }
         val->values = new_data;
         val->capacity = new_capacity;
     }
@@ -164,13 +158,8 @@ void push_back_val(struct value_vec* val, struct value_type* value) {
 
 void push_back_com(struct command_vec* com, struct command_type* command) {
     if (com->size == com->capacity) {
-        // Необходимо увеличить вместимость
         size_t new_capacity = com->capacity * 2;
         struct command_type** new_data = (struct command_type**)realloc(com->commands, new_capacity * sizeof(struct command_type*));
-        if (new_data == NULL) {
-            fprintf(stderr, "Ошибка перевыделения памяти для данных вектора\n");
-            return; // Indicate failure
-        }
         com->commands = new_data;
         com->capacity = new_capacity;
     }

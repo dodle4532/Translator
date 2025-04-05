@@ -15,6 +15,7 @@
 [0-9]+      {yylval.integer = atoi(yytext); return NUM;}
 [0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?      { yylval.fl = atof(yytext); return FLOAT; }
 "let" {return LET;}
+"mut" {return MUT;}
 "u32" {yylval.str = strdup(yytext); return U32;}
 "f32" {yylval.str = strdup(yytext); return F32;}
 "u64" {yylval.str = strdup(yytext); return U64;}

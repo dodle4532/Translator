@@ -49,6 +49,7 @@
 %token <str> WORD
 %token <str> STRING
 %token LET
+%token MUT
 %token <str> U32
 %token <str> U64
 %token <str> F32
@@ -105,10 +106,10 @@ command:
 ;
 
 declaration:
-  LET WORD ':' type init ';' { 
-                               struct member_type* mem = createMember($5, $2);
-                               mem->wantedType = getValueType($4);
-                               $$ = createCommand(num++, MEMBER_COM_TYPE, mem); free($4);}
+  LET MUT WORD ':' type init ';' { 
+                               struct member_type* mem = createMember($6, $3);
+                               mem->wantedType = getValueType($5);
+                               $$ = createCommand(num++, MEMBER_COM_TYPE, mem); free($5);}
 ;
 
 init:

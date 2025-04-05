@@ -15,36 +15,31 @@ fn fibonacci(n: u32) -> u32 {
 }
 
 fn main() {
-    let number: u32 = 42;
-    println!("The number is: {}\n", number);
+    let mut number: u32 = 42;
+    println!("The number is: {}", number);
 
-    let factorial_result: u32 = factorial(5);
-    println!("Factorial of 5 is: {}\n", factorial_result);
+    let mut factorial_result: u32 = factorial(5);
+    println!("Factorial of 5 is: {}", factorial_result);
 
-    let pi: f32 = 3.14159;
-    println!("Pi is approximately: {}\n", pi);
+    let mut pi: f32 = 3.14159;
+    println!("Pi is approximately: {}", pi);
 
-    let radius: f32 = 5.0;
-    let area: f32 = pi * radius * radius;
-    println!("Area of a circle with radius {} is: {}\n", radius, area);
+    let mut radius: f32 = 5.0;
+    let mut area: f32 = pi * radius * radius;
+    println!("Area of a circle with radius {} is: {}", radius, area);
 
-    let is_true: bool = true;
-    let is_false: bool = false;
-    println!("Is true? {}\n", is_true);
-    println!("Is false? {}\n", is_false);
-
-    let str1: str = "123";
-    let str2: str = "456";
-    println!("'{str1}'+'{str2}' = {str1+str2}\n");
+    let mut is_true: bool = true;
+    let mut is_false: bool = false;
+    println!("Is true? {}", is_true);
+    println!("Is false? {}", is_false);
 
     for i in 0..4 {
-        let b : u32 = i+1;
-        println!("The {}th Fibonacci number is: {}\n", b, fibonacci(b));
+        let mut b : u32 = i+1;
+        println!("The {}th Fibonacci number is: {}", b, fibonacci(b));
     }
-    let a : u32 = 0;
+    let mut a : u32 = 0;
     while a < 10 {
         println!("{a} ");
         a = a + 2;
     }
-    println!("\n");
 }

@@ -17,17 +17,14 @@ int main(int argc, char **argv) {
     int res;
     globalAst = createAst();
     if (argc != 2) {
+        freeAstWithoutData(globalAst);
         printf("No file\n");
-        char* str = strdup("test.txt");
-        FILE *inputFile = fopen(str, "r");
-        
-        yyin = inputFile;
-        res = yyparse();
-        fclose(inputFile);
+        return 1;
     }
     else {
         FILE *inputFile = fopen(argv[1], "r");
         if (!inputFile) {
+            printf("File not found\n");
             return 1;
         }
 

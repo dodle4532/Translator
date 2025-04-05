@@ -831,7 +831,7 @@ bool doFunc(struct ast* ast, struct command_type* command) {
             placeholder_location = strstr(tmp, "{");
         }
         strncat(res, tmp, size);
-        buffered_printf("%s", res);
+        buffered_printf("%s\n", res);
         free(res);
         free(tmpToFree);
         return true;

@@ -679,6 +679,11 @@ bool checkAst(struct ast* ast) {
             continue;
         }
         struct member_type* mem1 = ast->declarations->commands[i]->command;
+        if (mem1->wantedType != mem1->value->type && mem1->value->type != FUNC_TYPE && 
+            mem1->value->type != OBJECT_TYPE && mem1->value->type != NULL_TYPE && mem1->wantedType != NULL_TYPE) {
+            error("Trying to sign %s to %s in declaration of %s, which is not allowed", getStrFromValueType(mem1->value->type), 
+                                                                   getStrFromValueType(mem1->wantedType), mem1->name);
+        }
         for (int j = i + 1; j < ast->declarations->size; ++j) {
             struct member_type* mem2 = ast->declarations->commands[j]->command;
             if (!strcmp(mem1->name, mem2->name)) {

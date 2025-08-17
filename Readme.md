@@ -84,3 +84,6 @@ These instructions will guide you on how to build and run the translator on a Li
     ```
 
     The translator will process the `test.txt` file and print the translated C code to the standard output (usually your terminal).
+## More info
+
+Check file 'Курсовая работа' to see more information about project.
